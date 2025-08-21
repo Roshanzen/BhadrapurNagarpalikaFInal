@@ -112,6 +112,9 @@ class MunicipalHeaderWidget extends StatelessWidget {
                 border: Border.all(
                   color: AppTheme.lightTheme.colorScheme.onPrimary
                       .withValues(alpha: 0.3),
+
+
+                      
                   width: 1,
                 ),
               ),
