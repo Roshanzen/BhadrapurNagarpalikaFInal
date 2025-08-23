@@ -9,6 +9,7 @@ import '../presentation/complaint_submission_form/complaint_submission_form.dart
 import '../presentation/complaint_detail_view/complaint_detail_view.dart';
 import '../presentation/notice_board_management/notice_board_management.dart';
 
+
 class AppRoutes {
   // TODO: Add your routes here
   static const String initial = '/';

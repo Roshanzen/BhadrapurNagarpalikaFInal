@@ -6,8 +6,8 @@ class AppTheme {
   AppTheme._();
 
   // Nepali Heritage Modern Color Palette
-  static const Color primaryLight = Color(0xFFC41E3A); // Nepal flag crimson
-  static const Color primaryVariantLight = Color(0xFF9A1529); // Darker crimson
+  static const Color primaryLight = Color(0xFF26A69A); // Nepal flag crimson
+  static const Color primaryVariantLight = Color(0xFF2196F3); // Darker crimson
   static const Color secondaryLight = Color(0xFF003893); // Royal blue
   static const Color secondaryVariantLight = Color(0xFF002A6B); // Darker blue
   static const Color backgroundLight = Color(0xFFFAFAFA); // Warm off-white
