@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/app_export.dart';
 import './widgets/privacy_notice_modal.dart';
@@ -11,8 +14,7 @@ class CitizenRegistrationScreen extends StatefulWidget {
   const CitizenRegistrationScreen({Key? key}) : super(key: key);
 
   @override
-  State<CitizenRegistrationScreen> createState() =>
-      _CitizenRegistrationScreenState();
+  State<CitizenRegistrationScreen> createState() => _CitizenRegistrationScreenState();
 }
 
 class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
@@ -35,7 +37,7 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
 
     _slideAnimation = Tween<Offset>(begin: Offset(0, 0.3), end: Offset.zero)
         .animate(CurvedAnimation(
-        parent: _animationController, curve: Curves.easeOutCubic));
+            parent: _animationController, curve: Curves.easeOutCubic));
 
     _animationController.forward();
   }
@@ -71,16 +73,36 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
     setState(() => _isFacebookLoading = true);
 
     try {
-      // Simulate Facebook OAuth flow
-      await Future.delayed(Duration(seconds: 2));
+      // Trigger Facebook login
+      final LoginResult result = await FacebookAuth.instance.login(
+        permissions: ['email', 'public_profile'], // Request email and basic profile
+      );
 
-      // Show success feedback
-      HapticFeedback.lightImpact();
+      if (result.status == LoginStatus.success) {
+        final AccessToken? accessToken = result.accessToken;
 
-      // Show ward selection modal
-      _showWardSelectionModal();
+        // Fetch user data
+        final userData = await FacebookAuth.instance.getUserData(
+          fields: "name,email,id",
+        );
+
+        final String facebookId = userData['id'];
+        final String fullName = userData['name'];
+        final String? emailAddress = userData['email']; // May be null if not granted
+
+        // Call backend to verify/create user
+        await _callBackendApi(facebookId, fullName, emailAddress);
+
+        // Show success feedback
+        HapticFeedback.lightImpact();
+
+        // Show ward selection modal
+        _showWardSelectionModal();
+      } else {
+        throw Exception('Facebook login failed: ${result.message}');
+      }
     } catch (e) {
-      _showErrorSnackBar('Facebook authentication failed. Please try again.');
+      _showErrorSnackBar('Facebook authentication failed: $e. Please try again.');
     } finally {
       if (mounted) {
         setState(() => _isFacebookLoading = false);
@@ -109,14 +131,55 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
     }
   }
 
+  // New method to call backend API
+  Future<void> _callBackendApi(String facebookId, String fullName, String? emailAddress) async {
+    final String apiUrl = 'https://uat.nirc.com.np:8443/GWP/member/mobileLoginValidation';
+    final String organizationId = '100'; // Set to ward ID 100 for testing
+
+    try {
+      final response = await Dio().post(
+        apiUrl,
+        data: {
+          'facebookId': facebookId,
+          'fullName': fullName,
+          'emailAddress': emailAddress ?? 'not_provided',
+          'organization': organizationId,
+        },
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json', // Ensure the content type is set
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = response.data;
+        if (jsonResponse['statusCode'] == 200 && jsonResponse['success'] == true) {
+          // Optionally store user data (e.g., memberId) in shared_preferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('memberId', jsonResponse['data'][0]['memberId'].toString());
+          await prefs.setString('memberName', jsonResponse['data'][0]['memberName']);
+          await prefs.setString('facebookId', jsonResponse['data'][0]['facebookId']);
+          await prefs.setString('orgId', jsonResponse['data'][0]['orgId'].toString()); // Store orgId
+        } else {
+          throw Exception(jsonResponse['message'] ?? 'Backend verification failed');
+        }
+      } else {
+        throw Exception('API call failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('API error: $e');
+    }
+  }
+
   void _showWardSelectionModal() {
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (context) => WardSelectionModal(onWardSelected: (wardNumber) {
-          _handleWardSelection(wardNumber);
-        }));
+              _handleWardSelection(wardNumber);
+            }));
   }
 
   void _handleWardSelection(int wardNumber) {
@@ -151,59 +214,69 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
 
   Future<bool> _onWillPop() async {
     return await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-            title: Text('Go Back?',
-                style: AppTheme.lightTheme.textTheme.titleLarge),
-            content: Text(
-                'Are you sure you want to go back to role selection?',
-                style: AppTheme.lightTheme.textTheme.bodyMedium),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text('Cancel')),
-              TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text('Go Back')),
-            ])) ??
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text('Go Back?',
+                      style: AppTheme.lightTheme.textTheme.titleLarge),
+                  content: Text(
+                      'Are you sure you want to go back to role selection?',
+                      style: AppTheme.lightTheme.textTheme.bodyMedium),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text('Cancel')),
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text('Go Back')),
+                  ],
+                )) ??
         false;
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: _onWillPop,
-        child: Scaffold(
-            backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
-            body: SafeArea(
-                child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                        position: _slideAnimation,
-                        child: SingleChildScrollView(
-                            child: Container(
-                                width: 100.w,
-                                child: Column(children: [
-                                  // Header section
-                                  _buildHeader(),
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
+        body: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: SingleChildScrollView(
+                child: Container(
+                  width: 100.w,
+                  child: Column(
+                    children: [
+                      // Header section
+                      _buildHeader(),
 
-                                  // Welcome illustration
-                                  _buildWelcomeIllustration(),
+                      // Welcome illustration
+                      _buildWelcomeIllustration(),
 
-                                  // Social authentication buttons
-                                  _buildSocialAuthSection(),
+                      // Social authentication buttons
+                      _buildSocialAuthSection(),
 
-                                  // Divider
-                                  _buildDivider(),
+                      // Divider
+                      _buildDivider(),
 
-                                  // Manual registration option
-                                  _buildManualRegistrationOption(),
+                      // Manual registration option
+                      _buildManualRegistrationOption(),
 
-                                  // Privacy notice
-                                  _buildPrivacyNotice(),
+                      // Privacy notice
+                      _buildPrivacyNotice(),
 
-                                  SizedBox(height: 4.h),
-                                ]))))))));
+                      SizedBox(height: 4.h),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildHeader() {
@@ -253,15 +326,13 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
                     Text('भद्रपुर',
                         style: AppTheme.lightTheme.textTheme.titleLarge
                             ?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color:
-                            AppTheme.lightTheme.colorScheme.primary)),
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.lightTheme.colorScheme.primary)),
                     Text('नगरपालिका',
                         style: AppTheme.lightTheme.textTheme.titleMedium
                             ?.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color:
-                            AppTheme.lightTheme.colorScheme.primary)),
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.lightTheme.colorScheme.primary)),
                   ])),
 
           SizedBox(height: 3.h),
