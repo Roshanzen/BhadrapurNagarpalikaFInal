@@ -1,108 +1,112 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/app_export.dart';
+import './widgets/login_form_widget.dart';
+import './widgets/municipal_header_widget.dart';
 
-import '../citizen_dashboard/citizen_dashboard.dart';
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
+class OfficerLoginScreen extends StatefulWidget {
+  const OfficerLoginScreen({Key? key}) : super(key: key);
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<OfficerLoginScreen> createState() => _OfficerLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
+class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
+  bool _loading = false, _nepali = false;
+  String? _error;
+  final _creds = {'officer1':'password123','admin':'admin123','municipal_officer':'officer@123'};
+  String t(String np, String en) => _nepali ? np : en;
 
-  Future<void> _login() async {
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter username and password")),
-      );
-      return;
+  Future<void> _login(String u, String p) async {
+    setState(() => _loading = true);
+    await Future.delayed(const Duration(seconds: 2));
+    if (_creds[u] == p) {
+      HapticFeedback.lightImpact();
+      if (mounted) Navigator.pushReplacementNamed(context, '/officer-dashboard');
+    } else {
+      _error = t('गलत प्रयोगकर्ता नाम वा पासवर्ड।','Invalid username or password.');
+      HapticFeedback.heavyImpact();
     }
-
-    setState(() => _isLoading = true);
-
-    try {
-      // 🔗 Replace with your real API URL
-      final url = Uri.parse("https://uat.nirc.com.np:8443/GWP/user/isLogin");
-
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"username": username, "password": password}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // ✅ Adjust according to your API response format
-        if (data["success"] == true) {
-          // Navigate to Citizen Dashboard
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const CitizenDashboard()),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data["message"] ?? "Login failed")),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Server error: ${response.statusCode}")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
+    if (mounted) setState(() => _loading = false);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext c) {
+    final th = AppTheme.lightTheme, p = th.colorScheme.primary;
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("Login", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                labelText: "Username",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Password",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            _isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _login,
-                    child: const Text("Login"),
+      backgroundColor: th.scaffoldBackgroundColor,
+      body: GestureDetector(
+        onTap: () => FocusScope.of(c).unfocus(),
+        child: Column(children: [
+          MunicipalHeaderWidget(isNepali: _nepali),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.all(4.w),
+              child: Column(children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () => setState(() { _nepali = !_nepali; _error = null; }),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                      decoration: BoxDecoration(
+                          color: p.withOpacity(0.1),
+                          border: Border.all(color: p.withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(3.w)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        CustomIconWidget(iconName: 'language', color: p, size: 16),
+                        SizedBox(width: 1.w),
+                        Text(_nepali ? 'EN':'नेपाली',
+                            style: th.textTheme.labelMedium?.copyWith(color: p,fontWeight: FontWeight.w600)),
+                      ]),
+                    ),
                   ),
-          ],
-        ),
+                ),
+                SizedBox(height: 3.h),
+                LoginFormWidget(onLogin: _login, isLoading: _loading, errorMessage: _error),
+                SizedBox(height: 4.h),
+                Container(
+                  padding: EdgeInsets.all(3.w),
+                  decoration: BoxDecoration(
+                      color: th.colorScheme.surface,
+                      border: Border.all(color: th.dividerColor),
+                      borderRadius: BorderRadius.circular(2.w)),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      CustomIconWidget(iconName: 'help_outline', color: p, size: 20),
+                      SizedBox(width: 2.w),
+                      Text(t('सहायता चाहिन्छ?','Need Help?'),
+                          style: th.textTheme.titleSmall?.copyWith(color: p,fontWeight: FontWeight.w600)),
+                    ]),
+                    SizedBox(height: 1.h),
+                    Text(t('लगइन समस्या भएमा आफ्नो प्रशासकसँग सम्पर्क गर्नुहोस्।',
+                        'For login issues, contact your administrator.'),
+                        style: th.textTheme.bodySmall, textAlign: TextAlign.center),
+                    SizedBox(height: 1.h),
+                    Text(t('डेमो: officer1/password123','Demo: officer1/password123'),
+                        style: th.textTheme.bodySmall?.copyWith(color: p,fontWeight: FontWeight.w500),
+                        textAlign: TextAlign.center),
+                  ]),
+                )
+              ]),
+            ),
+          ),
+          SafeArea(
+            child: Padding(
+              padding: EdgeInsets.all(4.w),
+              child: SizedBox(
+                width: double.infinity,height: 6.h,
+                child: OutlinedButton.icon(
+                  onPressed: _loading?null:()=>Navigator.pushReplacementNamed(c,'/role-selection-screen'),
+                  icon: CustomIconWidget(iconName:'arrow_back',color:p,size:20),
+                  label: Text(t('फिर्ता जानुहोस्','Go Back'),
+                      style: th.textTheme.labelLarge?.copyWith(color:p,fontWeight:FontWeight.w500)),
+                ),
+              ),
+            ),
+          )
+        ]),
       ),
     );
   }
