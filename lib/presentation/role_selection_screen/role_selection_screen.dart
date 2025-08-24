@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
-
 import '../../core/app_export.dart';
 import './widgets/help_bottom_sheet_widget.dart';
 import './widgets/language_toggle_widget.dart';
@@ -29,10 +28,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       "titleEnglish": "Karyalaya",
       "subtitleNepali": "अधिकारी लगइन",
       "subtitleEnglish": "Officer Login",
-      "descriptionNepali":
-      "नगरपालिकाका अधिकारीहरूका लागि गुनासो व्यवस्थापन प्रणाली",
-      "descriptionEnglish":
-      "Complaint management system for municipal officers",
+      "descriptionNepali": "नगरपालिकाका अधिकारीहरूका लागि गुनासो व्यवस्थापन प्रणाली",
+      "descriptionEnglish": "Complaint management system for municipal officers",
       "icon": "badge",
       "route": "/officer-login-screen",
     },
@@ -42,8 +39,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       "subtitleNepali": "नागरिक लगइन",
       "subtitleEnglish": "Citizen Login",
       "descriptionNepali": "स्थानीय नागरिकहरूका लागि गुनासो दर्ता र ट्र्याकिङ",
-      "descriptionEnglish":
-      "Complaint registration and tracking for local citizens",
+      "descriptionEnglish": "Complaint registration and tracking for local citizens",
       "icon": "people",
       "route": "/citizen-registration-screen",
     },
@@ -105,8 +101,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       _selectedRole = index;
     });
     HapticFeedback.selectionClick();
-
-    // Navigate after brief delay for visual feedback
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         Navigator.pushNamed(context, _roleData[index]["route"]);
@@ -150,7 +144,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
             ),
             ElevatedButton(
               onPressed: () => SystemNavigator.pop(),
-              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+              ),
               child: Text(
                 _isNepali ? "बाहिर निस्कनुहोस्" : "Exit",
                 style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
@@ -190,26 +186,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                       ),
                       GestureDetector(
                         onTap: _showHelpBottomSheet,
-                        child: Container(
+                        child: Padding(
                           padding: EdgeInsets.all(2.w),
-                          decoration: BoxDecoration(
-                            color: AppTheme.lightTheme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.lightTheme.colorScheme.outline
-                                  .withValues(alpha: 0.3),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.lightTheme.colorScheme.shadow
-                                    .withValues(alpha: 0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: CustomIconWidget(
-                            iconName: 'help_outline',
+                          child: Icon(
+                            Icons.help_outline,
                             color: AppTheme.lightTheme.colorScheme.primary,
                             size: 6.w,
                           ),
@@ -218,7 +198,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                     ],
                   ),
                 ),
-
                 // Logo and title section
                 Expanded(
                   flex: 2,
@@ -227,34 +206,16 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
+                        Image.asset(
+                          'assets/images/logo.png',
                           width: 25.w,
                           height: 25.w,
-                          decoration: BoxDecoration(
-                            color: AppTheme.lightTheme.colorScheme.primary
-                                .withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: AppTheme.lightTheme.colorScheme.primary
-                                  .withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: Center(
-                            child: CustomIconWidget(
-                              iconName: 'account_balance',
-                              color: AppTheme.lightTheme.colorScheme.primary,
-                              size: 12.w,
-                            ),
-                          ),
+                          fit: BoxFit.contain,
                         ),
                         SizedBox(height: 3.h),
                         Text(
-                          _isNepali
-                              ? "भद्रपुर नगरपालिका"
-                              : "Bhadrapur Nagarpalika",
-                          style: AppTheme.lightTheme.textTheme.headlineMedium
-                              ?.copyWith(
+                          _isNepali ? "भद्रपुर नगरपालिका" : "Bhadrapur Nagarpalika",
+                          style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: AppTheme.lightTheme.colorScheme.primary,
                           ),
@@ -262,13 +223,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                         ),
                         SizedBox(height: 1.h),
                         Text(
-                          _isNepali
-                              ? "गुनासो व्यवस्थापन पोर्टल"
-                              : "Complaint Management Portal",
-                          style: AppTheme.lightTheme.textTheme.titleMedium
-                              ?.copyWith(
-                            color: AppTheme
-                                .lightTheme.colorScheme.onSurfaceVariant,
+                          _isNepali ? "गुनासो व्यवस्थापन पोर्टल" : "Complaint Management Portal",
+                          style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                            color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
@@ -277,18 +234,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                     ),
                   ),
                 ),
-
                 // Role selection cards
                 Expanded(
                   flex: 3,
                   child: Column(
                     children: [
                       Text(
-                        _isNepali
-                            ? "आफ्नो भूमिका छान्नुहोस्"
-                            : "Select Your Role",
-                        style:
-                        AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                        _isNepali ? "आफ्नो भूमिका छान्नुहोस्" : "Select Your Role",
+                        style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppTheme.lightTheme.colorScheme.onSurface,
                         ),
@@ -300,23 +253,13 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                           itemCount: _roleData.length,
                           itemBuilder: (context, index) {
                             final role = _roleData[index];
-                            return AnimatedContainer(
-                              duration:
-                              Duration(milliseconds: 200 + (index * 100)),
-                              child: RoleCardWidget(
-                                roleTitle: _isNepali
-                                    ? role["titleNepali"]
-                                    : role["titleEnglish"],
-                                roleSubtitle: _isNepali
-                                    ? role["subtitleNepali"]
-                                    : role["subtitleEnglish"],
-                                roleDescription: _isNepali
-                                    ? role["descriptionNepali"]
-                                    : role["descriptionEnglish"],
-                                iconName: role["icon"],
-                                isSelected: _selectedRole == index,
-                                onTap: () => _selectRole(index),
-                              ),
+                            return RoleCardWidget(
+                              roleTitle: _isNepali ? role["titleNepali"] : role["titleEnglish"],
+                              roleSubtitle: _isNepali ? role["subtitleNepali"] : role["subtitleEnglish"],
+                              roleDescription: _isNepali ? role["descriptionNepali"] : role["descriptionEnglish"],
+                              iconName: role["icon"],
+                              isSelected: _selectedRole == index,
+                              onTap: () => _selectRole(index),
                             );
                           },
                         ),
@@ -324,34 +267,29 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                     ],
                   ),
                 ),
-
                 // Need Help section
                 Padding(
                   padding: EdgeInsets.all(4.w),
                   child: GestureDetector(
                     onTap: _showHelpBottomSheet,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 2.h),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CustomIconWidget(
-                            iconName: 'support_agent',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.support_agent,
+                          color: AppTheme.lightTheme.colorScheme.primary,
+                          size: 5.w,
+                        ),
+                        SizedBox(width: 2.w),
+                        Text(
+                          _isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
+                          style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
                             color: AppTheme.lightTheme.colorScheme.primary,
-                            size: 5.w,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
                           ),
-                          SizedBox(width: 2.w),
-                          Text(
-                            _isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
-                            style: AppTheme.lightTheme.textTheme.labelLarge
-                                ?.copyWith(
-                              color: AppTheme.lightTheme.colorScheme.primary,
-                              fontWeight: FontWeight.w500,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

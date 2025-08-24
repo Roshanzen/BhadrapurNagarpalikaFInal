@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
-
 import '../../../core/app_export.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -11,13 +10,11 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late AnimationController _logoAnimationController;
   late AnimationController _textAnimationController;
   late Animation<double> _logoScaleAnimation;
   late Animation<double> _textFadeAnimation;
-
   bool _isLoading = true;
   bool _hasNetworkConnection = false;
   String _loadingStatus = 'प्रारम्भ गर्दै...';
@@ -91,7 +88,6 @@ class _SplashScreenState extends State<SplashScreen>
     setState(() {
       _loadingStatus = 'नेटवर्क जाँच गर्दै...';
     });
-
     try {
       // Simulate network check
       await Future.delayed(const Duration(milliseconds: 500));
@@ -111,7 +107,6 @@ class _SplashScreenState extends State<SplashScreen>
     setState(() {
       _loadingStatus = 'भाषा सामग्री तयार गर्दै...';
     });
-
     await Future.delayed(const Duration(milliseconds: 600));
   }
 
@@ -119,7 +114,6 @@ class _SplashScreenState extends State<SplashScreen>
     setState(() {
       _loadingStatus = 'डाटा तयार गर्दै...';
     });
-
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
@@ -127,9 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
     setState(() {
       _loadingStatus = 'प्रमाणीकरण जाँच गर्दै...';
     });
-
     await Future.delayed(const Duration(milliseconds: 400));
-
     setState(() {
       _isLoading = false;
       _loadingStatus = 'तयार छ!';
@@ -140,7 +132,6 @@ class _SplashScreenState extends State<SplashScreen>
     // Check for stored authentication
     bool hasOfficerAuth = false; // This would check actual stored credentials
     bool hasCitizenAuth = false; // This would check actual stored credentials
-
     if (hasOfficerAuth) {
       Navigator.pushReplacementNamed(context, '/officer-dashboard');
     } else if (hasCitizenAuth) {
@@ -188,64 +179,17 @@ class _SplashScreenState extends State<SplashScreen>
                     builder: (context, child) {
                       return Transform.scale(
                         scale: _logoScaleAnimation.value,
-                        child: Container(
+                        child: Image.asset(
+                          'assets/images/logo.png',
                           width: 35.w,
                           height: 35.w,
-                          decoration: BoxDecoration(
-                            color: AppTheme.lightTheme.colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(4.w),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                CustomIconWidget(
-                                  iconName: 'account_balance',
-                                  color:
-                                  AppTheme.lightTheme.colorScheme.primary,
-                                  size: 12.w,
-                                ),
-                                SizedBox(height: 1.h),
-                                Text(
-                                  'भद्रपुर',
-                                  style: AppTheme
-                                      .lightTheme.textTheme.titleSmall
-                                      ?.copyWith(
-                                    color:
-                                    AppTheme.lightTheme.colorScheme.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 8.sp,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                Text(
-                                  'नगरपालिका',
-                                  style: AppTheme.lightTheme.textTheme.bodySmall
-                                      ?.copyWith(
-                                    color: AppTheme
-                                        .lightTheme.colorScheme.secondary,
-                                    fontSize: 6.sp,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
+                          fit: BoxFit.contain,
                         ),
                       );
                     },
                   ),
                 ),
               ),
-
               // Welcome Message Section
               Expanded(
                 flex: 1,
@@ -259,8 +203,7 @@ class _SplashScreenState extends State<SplashScreen>
                         children: [
                           Text(
                             'स्वागत छ',
-                            style: AppTheme.lightTheme.textTheme.headlineSmall
-                                ?.copyWith(
+                            style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
                               color: AppTheme.lightTheme.colorScheme.onPrimary,
                               fontWeight: FontWeight.w600,
                               fontSize: 18.sp,
@@ -270,10 +213,8 @@ class _SplashScreenState extends State<SplashScreen>
                           SizedBox(height: 1.h),
                           Text(
                             'भद्रपुर नगरपालिका गुनासो पोर्टलमा',
-                            style: AppTheme.lightTheme.textTheme.bodyLarge
-                                ?.copyWith(
-                              color: AppTheme.lightTheme.colorScheme.onPrimary
-                                  .withValues(alpha: 0.9),
+                            style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
+                              color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.9),
                               fontSize: 12.sp,
                             ),
                             textAlign: TextAlign.center,
@@ -284,7 +225,6 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                 ),
               ),
-
               // Loading Section
               Expanded(
                 flex: 1,
@@ -298,17 +238,15 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       strokeWidth: 3.0,
                     )
-                        : CustomIconWidget(
-                      iconName: 'check_circle',
-                      color: AppTheme.lightTheme.colorScheme.onPrimary,
-                      size: 8.w,
+                        : const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
                     ),
                     SizedBox(height: 2.h),
                     Text(
                       _loadingStatus,
                       style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.lightTheme.colorScheme.onPrimary
-                            .withValues(alpha: 0.8),
+                        color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.8),
                         fontSize: 10.sp,
                       ),
                       textAlign: TextAlign.center,
@@ -318,19 +256,16 @@ class _SplashScreenState extends State<SplashScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CustomIconWidget(
-                            iconName: 'wifi_off',
-                            color: AppTheme.lightTheme.colorScheme.onPrimary
-                                .withValues(alpha: 0.6),
+                          Icon(
+                            Icons.wifi_off,
+                            color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
                             size: 4.w,
                           ),
                           SizedBox(width: 2.w),
                           Text(
                             'अफलाइन मोडमा काम गर्दै',
-                            style: AppTheme.lightTheme.textTheme.bodySmall
-                                ?.copyWith(
-                              color: AppTheme.lightTheme.colorScheme.onPrimary
-                                  .withValues(alpha: 0.6),
+                            style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                              color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
                               fontSize: 8.sp,
                             ),
                           ),
@@ -340,15 +275,13 @@ class _SplashScreenState extends State<SplashScreen>
                   ],
                 ),
               ),
-
               // Version Info
               Padding(
                 padding: EdgeInsets.only(bottom: 2.h),
                 child: Text(
                   'संस्करण १.०.०',
                   style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.onPrimary
-                        .withValues(alpha: 0.5),
+                    color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.5),
                     fontSize: 8.sp,
                   ),
                 ),

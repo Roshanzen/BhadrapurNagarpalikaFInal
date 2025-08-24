@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-
 import '../../../core/app_export.dart';
 
 class HelpBottomSheetWidget extends StatelessWidget {
@@ -52,8 +51,7 @@ class HelpBottomSheetWidget extends StatelessWidget {
               width: 10.w,
               height: 0.5.h,
               decoration: BoxDecoration(
-                color: AppTheme.lightTheme.colorScheme.outline
-                    .withValues(alpha: 0.3),
+                color: AppTheme.lightTheme.colorScheme.outline.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -67,37 +65,15 @@ class HelpBottomSheetWidget extends StatelessWidget {
             ),
           ),
           SizedBox(height: 2.h),
-          ...helpItems
-              .map((item) => Container(
+          ...helpItems.map((item) => Container(
             margin: EdgeInsets.only(bottom: 2.h),
-            padding: EdgeInsets.all(3.w),
-            decoration: BoxDecoration(
-              color: AppTheme.lightTheme.colorScheme.primary
-                  .withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppTheme.lightTheme.colorScheme.outline
-                    .withValues(alpha: 0.1),
-              ),
-            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 10.w,
-                  height: 10.w,
-                  decoration: BoxDecoration(
-                    color: AppTheme.lightTheme.colorScheme.primary
-                        .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: CustomIconWidget(
-                      iconName: item["icon"],
-                      color: AppTheme.lightTheme.colorScheme.primary,
-                      size: 5.w,
-                    ),
-                  ),
+                Icon(
+                  _getIconData(item["icon"]),
+                  color: AppTheme.lightTheme.colorScheme.primary,
+                  size: 5.w,
                 ),
                 SizedBox(width: 3.w),
                 Expanded(
@@ -106,20 +82,16 @@ class HelpBottomSheetWidget extends StatelessWidget {
                     children: [
                       Text(
                         item["title"],
-                        style: AppTheme.lightTheme.textTheme.titleMedium
-                            ?.copyWith(
+                        style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color:
-                          AppTheme.lightTheme.colorScheme.onSurface,
+                          color: AppTheme.lightTheme.colorScheme.onSurface,
                         ),
                       ),
                       SizedBox(height: 0.5.h),
                       Text(
                         item["description"],
-                        style: AppTheme.lightTheme.textTheme.bodyMedium
-                            ?.copyWith(
-                          color: AppTheme
-                              .lightTheme.colorScheme.onSurfaceVariant,
+                        style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                           height: 1.4,
                         ),
                       ),
@@ -128,14 +100,15 @@ class HelpBottomSheetWidget extends StatelessWidget {
                 ),
               ],
             ),
-          ))
-              .toList(),
+          )).toList(),
           SizedBox(height: 2.h),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              style: AppTheme.lightTheme.elevatedButtonTheme.style,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+              ),
               child: Text(
                 isNepali ? "बुझें" : "Got it",
                 style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
@@ -148,5 +121,18 @@ class HelpBottomSheetWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case "badge":
+        return Icons.badge;
+      case "people":
+        return Icons.people;
+      case "how_to_reg":
+        return Icons.how_to_reg;
+      default:
+        return Icons.help_outline;
+    }
   }
 }

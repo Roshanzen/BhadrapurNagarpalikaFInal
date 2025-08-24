@@ -3,9 +3,9 @@ import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import 'widgets/complaint_category_card.dart';
-import './widgets/news_card.dart';
 import './widgets/profile_drawer.dart';
 import './widgets/suchana_board_card.dart';
+import '../gunaso_form/gunaso_form.dart';
 
 class CitizenDashboard extends StatefulWidget {
   const CitizenDashboard({Key? key}) : super(key: key);
@@ -103,50 +103,10 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     },
   ];
 
-  // Mock recent news data
-  final List<Map<String, dynamic>> _recentNews = [
-    {
-      "id": 1,
-      "headline": "भद्रपुर नगरपालिकामा नयाँ स्वास्थ्य केन्द्र स्थापना",
-      "summary":
-      "स्थानीय नागरिकहरूको स्वास्थ्य सेवामा सुधार ल्याउन नयाँ स्वास्थ्य केन्द्र स्थापना गरिएको छ। यस केन्द्रमा आधुनिक चिकित्सा सुविधा उपलब्ध छ।",
-      "category": "स्वास्थ्य",
-      "location": "भद्रपुर-३",
-      "timestamp": DateTime.now().subtract(Duration(hours: 3)),
-      "views": 245,
-      "image":
-      "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=250&fit=crop"
-    },
-    {
-      "id": 2,
-      "headline": "शिक्षा क्षेत्रमा डिजिटल प्रविधिको प्रयोग",
-      "summary":
-      "स्थानीय विद्यालयहरूमा डिजिटल शिक्षा प्रणाली लागू गर्ने तयारी भइरहेको छ। यसले विद्यार्थीहरूको शिक्षामा गुणस्तर सुधार ल्याउनेछ।",
-      "category": "शिक्षा",
-      "location": "भद्रपुर नगरपालिका",
-      "timestamp": DateTime.now().subtract(Duration(hours: 8)),
-      "views": 189,
-      "image":
-      "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=250&fit=crop"
-    },
-    {
-      "id": 3,
-      "headline": "वातावरण संरक्षण अभियान सुरु",
-      "summary":
-      "हरियाली संरक्षण र वातावरण सफाइका लागि नगरपालिकाले विशेष अभियान सुरु गरेको छ। सबै नागरिकहरूलाई सहयोग गर्न आग्रह।",
-      "category": "वातावरण",
-      "location": "भद्रपुर नगरपालिका",
-      "timestamp": DateTime.now().subtract(Duration(days: 1)),
-      "views": 156,
-      "image":
-      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=250&fit=crop"
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -159,147 +119,155 @@ class _CitizenDashboardState extends State<CitizenDashboard>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
-        drawer: ProfileDrawer(userProfile: _userProfile),
-        appBar: _buildAppBar(),
-        body: TabBarView(controller: _tabController, children: [
-          _buildHomeTab(),
-          _buildComplaintsTab(),
-          _buildNewsTab(),
-          _buildProfileTab(),
-        ]),
-        bottomNavigationBar: _buildBottomTabBar(),
-        floatingActionButton: _buildFloatingActionButton());
+      key: _scaffoldKey,
+      backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
+      drawer: ProfileDrawer(userProfile: _userProfile),
+      appBar: _buildAppBar(),
+      body: TabBarView(controller: _tabController, children: [
+        _buildHomeTab(),
+        _buildComplaintsTab(),
+        _buildProfileTab(),
+      ]),
+      bottomNavigationBar: _buildBottomTabBar(),
+      floatingActionButton: _buildFloatingActionButton(context),
+    );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-        backgroundColor: AppTheme.lightTheme.colorScheme.primary,
-        foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-        elevation: 2,
-        leading: GestureDetector(
-            onTap: () => _scaffoldKey.currentState?.openDrawer(),
-            child: Padding(
-                padding: EdgeInsets.all(2.w),
-                child: CircleAvatar(
-                    backgroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-                    child: _userProfile['avatar'] != null
-                        ? ClipOval(
-                        child: CustomImageWidget(
-                            imageUrl: _userProfile['avatar'] as String,
-                            width: 10.w,
-                            height: 10.w,
-                            fit: BoxFit.cover))
-                        : CustomIconWidget(
-                        iconName: 'person',
-                        color: AppTheme.lightTheme.colorScheme.primary,
-                        size: 6.w)))),
-        title: _isSearching
-            ? TextField(
-            controller: _searchController,
-            autofocus: true,
-            style: TextStyle(
+      backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+      foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
+      elevation: 2,
+      leading: GestureDetector(
+        onTap: () => _scaffoldKey.currentState?.openDrawer(),
+        child: Padding(
+          padding: EdgeInsets.all(2.w),
+          child: CircleAvatar(
+            backgroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
+            child: _userProfile['avatar'] != null
+                ? ClipOval(
+                child: CustomImageWidget(
+                    imageUrl: _userProfile['avatar'] as String,
+                    width: 10.w,
+                    height: 10.w,
+                    fit: BoxFit.cover))
+                : CustomIconWidget(
+                iconName: 'person',
+                color: AppTheme.lightTheme.colorScheme.primary,
+                size: 6.w),
+          ),
+        ),
+      ),
+      title: _isSearching
+          ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          style: TextStyle(
+              color: AppTheme.lightTheme.colorScheme.onPrimary,
+              fontSize: 14.sp),
+          decoration: InputDecoration(
+              hintText: 'गुनासो वा सूचना खोज्नुहोस्...',
+              hintStyle: TextStyle(
+                  color: AppTheme.lightTheme.colorScheme.onPrimary
+                      .withOpacity(0.7),
+                  fontSize: 14.sp),
+              border: InputBorder.none),
+          onSubmitted: (value) => _performSearch(value))
+          : Text('भद्रपुर नगरपालिका',
+          style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+              color: AppTheme.lightTheme.colorScheme.onPrimary,
+              fontWeight: FontWeight.w600)),
+      actions: [
+        IconButton(
+            onPressed: () {
+              setState(() {
+                _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear();
+                }
+              });
+            },
+            icon: CustomIconWidget(
+                iconName: _isSearching ? 'close' : 'search',
                 color: AppTheme.lightTheme.colorScheme.onPrimary,
-                fontSize: 14.sp),
-            decoration: InputDecoration(
-                hintText: 'गुनासो वा समाचार खोज्नुहोस्...',
-                hintStyle: TextStyle(
-                    color: AppTheme.lightTheme.colorScheme.onPrimary
-                        .withValues(alpha: 0.7),
-                    fontSize: 14.sp),
-                border: InputBorder.none),
-            onSubmitted: (value) => _performSearch(value))
-            : Text('भद्रपुर नगरपालिका',
-            style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                color: AppTheme.lightTheme.colorScheme.onPrimary,
-                fontWeight: FontWeight.w600)),
-        actions: [
+                size: 6.w)),
+        Stack(children: [
           IconButton(
-              onPressed: () {
-                setState(() {
-                  _isSearching = !_isSearching;
-                  if (!_isSearching) {
-                    _searchController.clear();
-                  }
-                });
-              },
+              onPressed: () => _showNotifications(),
               icon: CustomIconWidget(
-                  iconName: _isSearching ? 'close' : 'search',
+                  iconName: 'notifications',
                   color: AppTheme.lightTheme.colorScheme.onPrimary,
                   size: 6.w)),
-          Stack(children: [
-            IconButton(
-                onPressed: () => _showNotifications(),
-                icon: CustomIconWidget(
-                    iconName: 'notifications',
-                    color: AppTheme.lightTheme.colorScheme.onPrimary,
-                    size: 6.w)),
-            _notificationCount > 0
-                ? Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                    padding: EdgeInsets.all(1.w),
-                    decoration: BoxDecoration(
-                        color: AppTheme.lightTheme.colorScheme.error,
-                        borderRadius: BorderRadius.circular(10)),
-                    constraints:
-                    BoxConstraints(minWidth: 5.w, minHeight: 5.w),
-                    child: Text(
-                        _notificationCount > 9
-                            ? '9+'
-                            : _notificationCount.toString(),
-                        style: TextStyle(
-                            color: AppTheme.lightTheme.colorScheme.onError,
-                            fontSize: 8.sp,
-                            fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center)))
-                : const SizedBox.shrink(),
-          ]),
-          SizedBox(width: 2.w),
-        ]);
+          _notificationCount > 0
+              ? Positioned(
+              right: 8,
+              top: 8,
+              child: Container(
+                  padding: EdgeInsets.all(1.w),
+                  decoration: BoxDecoration(
+                      color: AppTheme.lightTheme.colorScheme.error,
+                      borderRadius: BorderRadius.circular(10)),
+                  constraints:
+                  BoxConstraints(minWidth: 5.w, minHeight: 5.w),
+                  child: Text(
+                      _notificationCount > 9
+                          ? '9+'
+                          : _notificationCount.toString(),
+                      style: TextStyle(
+                          color: AppTheme.lightTheme.colorScheme.onError,
+                          fontSize: 8.sp,
+                          fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center)))
+              : const SizedBox.shrink(),
+        ]),
+        SizedBox(width: 4.w),
+      ],
+    );
   }
 
   Widget _buildHomeTab() {
     return RefreshIndicator(
-        onRefresh: _refreshData,
-        color: AppTheme.lightTheme.colorScheme.primary,
-        child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.all(4.w),
-            child:
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _buildWelcomeSection(),
-              SizedBox(height: 3.h),
-              _buildComplaintCategoriesSection(),
-              SizedBox(height: 3.h),
-              _buildSuchanaBoardSection(),
-              SizedBox(height: 3.h),
-              _buildRecentNewsSection(),
-            ])));
+      onRefresh: _refreshData,
+      color: AppTheme.lightTheme.colorScheme.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(4.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildWelcomeSection(),
+            SizedBox(height: 3.h),
+            _buildComplaintCategoriesSection(),
+            SizedBox(height: 3.h),
+            _buildSuchanaBoardSection(),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildWelcomeSection() {
     return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(4.w),
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.lightTheme.colorScheme.primary
-                      .withValues(alpha: 0.1),
-                  AppTheme.lightTheme.colorScheme.secondary
-                      .withValues(alpha: 0.1),
-                ]),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-                color: AppTheme.lightTheme.colorScheme.primary
-                    .withValues(alpha: 0.2),
-                width: 1)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      width: double.infinity,
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.lightTheme.colorScheme.primary.withOpacity(0.1),
+            AppTheme.lightTheme.colorScheme.secondary.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.lightTheme.colorScheme.primary.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text('स्वागत छ, ${_userProfile['name']?.split(' ')[0] ?? 'नागरिक'}!',
               style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w600,
@@ -322,91 +290,76 @@ class _CitizenDashboardState extends State<CitizenDashboard>
                     fontWeight: FontWeight.w500,
                     color: AppTheme.lightTheme.colorScheme.primary)),
           ]),
-        ]));
+        ],
+      ),
+    );
   }
 
   Widget _buildComplaintCategoriesSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('गुनासो श्रेणीहरू',
-          style: AppTheme.lightTheme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w600)),
-      SizedBox(height: 2.h),
-      GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 3.w,
-              mainAxisSpacing: 2.h,
-              childAspectRatio: 1.8),
-          itemCount: _complaintCategories.length,
-          itemBuilder: (context, index) {
-            final category = _complaintCategories[index];
-            return ComplaintCategoryCard(
-                title: category['title'] as String,
-                iconName: category['icon'] as String,
-                count: category['count'] as int,
-                backgroundColor: category['color'] as Color,
-                onTap: () => _navigateToCategory(category['route'] as String));
-          }),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('गुनासो श्रेणीहरू',
+            style: AppTheme.lightTheme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600)),
+        SizedBox(height: 2.h),
+        GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 3.w,
+                mainAxisSpacing: 2.h,
+                childAspectRatio: 1.8),
+            itemCount: _complaintCategories.length,
+            itemBuilder: (context, index) {
+              final category = _complaintCategories[index];
+              return ComplaintCategoryCard(
+                  title: category['title'] as String,
+                  iconName: category['icon'] as String,
+                  count: category['count'] as int,
+                  backgroundColor: category['color'] as Color,
+                  onTap: () => _navigateToCategory(category['route'] as String));
+            }),
+      ],
+    );
   }
 
   Widget _buildSuchanaBoardSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Text('सूचना बोर्ड',
-            style: AppTheme.lightTheme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
-        const Spacer(),
-        TextButton(
-            onPressed: () => _viewAllNotices(),
-            child: Text('सबै हेर्नुहोस्',
-                style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.primary,
-                    fontWeight: FontWeight.w500))),
-      ]),
-      SizedBox(height: 1.h),
-      SizedBox(
-          height: 25.h,
-          child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _suchanaBoard.length,
-              itemBuilder: (context, index) {
-                return SuchanaBoardCard(notice: _suchanaBoard[index]);
-              })),
-    ]);
-  }
-
-  Widget _buildRecentNewsSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Text('ताजा समाचार',
-            style: AppTheme.lightTheme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
-        const Spacer(),
-        TextButton(
-            onPressed: () => _viewAllNews(),
-            child: Text('सबै हेर्नुहोस्',
-                style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.primary,
-                    fontWeight: FontWeight.w500))),
-      ]),
-      SizedBox(height: 1.h),
-      ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _recentNews.length,
-          itemBuilder: (context, index) {
-            return NewsCard(news: _recentNews[index]);
-          }),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Text('सूचना बोर्ड',
+              style: AppTheme.lightTheme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const Spacer(),
+          TextButton(
+              onPressed: () => _viewAllNotices(),
+              child: Text('सबै हेर्नुहोस्',
+                  style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.primary,
+                      fontWeight: FontWeight.w500))),
+        ]),
+        SizedBox(height: 1.h),
+        SizedBox(
+            height: 25.h,
+            child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _suchanaBoard.length,
+                itemBuilder: (context, index) {
+                  return SuchanaBoardCard(notice: _suchanaBoard[index]);
+                })),
+      ],
+    );
   }
 
   Widget _buildComplaintsTab() {
     return SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: EdgeInsets.all(4.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text('मेरा गुनासोहरू',
               style: AppTheme.lightTheme.textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w600)),
@@ -430,31 +383,17 @@ class _CitizenDashboardState extends State<CitizenDashboard>
                     onTap: () =>
                         _navigateToCategory(category['route'] as String));
               }),
-        ]));
-  }
-
-  Widget _buildNewsTab() {
-    return SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('समाचार र अपडेटहरू',
-              style: AppTheme.lightTheme.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          SizedBox(height: 2.h),
-          ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _recentNews.length,
-              itemBuilder: (context, index) {
-                return NewsCard(news: _recentNews[index]);
-              }),
-        ]));
+        ],
+      ),
+    );
   }
 
   Widget _buildProfileTab() {
     return SingleChildScrollView(
-        padding: EdgeInsets.all(4.w),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: EdgeInsets.all(4.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text('प्रोफाइल',
               style: AppTheme.lightTheme.textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w600)),
@@ -463,8 +402,8 @@ class _CitizenDashboardState extends State<CitizenDashboard>
               child: Column(children: [
                 CircleAvatar(
                     radius: 12.w,
-                    backgroundColor: AppTheme.lightTheme.colorScheme.primary
-                        .withValues(alpha: 0.1),
+                    backgroundColor:
+                    AppTheme.lightTheme.colorScheme.primary.withOpacity(0.1),
                     child: _userProfile['avatar'] != null
                         ? ClipOval(
                         child: CustomImageWidget(
@@ -486,36 +425,43 @@ class _CitizenDashboardState extends State<CitizenDashboard>
               ])),
           SizedBox(height: 4.h),
           _buildProfileInfoCard(),
-        ]));
+        ],
+      ),
+    );
   }
 
   Widget _buildProfileInfoCard() {
     return Card(
-        child: Padding(
-            padding: EdgeInsets.all(4.w),
-            child:
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('व्यक्तिगत जानकारी',
-                  style: AppTheme.lightTheme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600)),
-              SizedBox(height: 2.h),
-              _buildInfoRow(
-                  'फोन नम्बर', _userProfile['phone'] as String, 'phone'),
-              _buildInfoRow('वार्ड नम्बर', 'वार्ड ${_userProfile['ward']}',
-                  'location_city'),
-              _buildInfoRow(
-                  'ठेगाना', _userProfile['address'] as String, 'home'),
-              _buildInfoRow(
-                  'सदस्यता मिति',
-                  _formatDate(_userProfile['joinDate'] as DateTime),
-                  'calendar_today'),
-            ])));
+      child: Padding(
+        padding: EdgeInsets.all(4.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('व्यक्तिगत जानकारी',
+                style: AppTheme.lightTheme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600)),
+            SizedBox(height: 2.h),
+            _buildInfoRow(
+                'फोन नम्बर', _userProfile['phone'] as String, 'phone'),
+            _buildInfoRow('वार्ड नम्बर', 'वार्ड ${_userProfile['ward']}',
+                'location_city'),
+            _buildInfoRow(
+                'ठेगाना', _userProfile['address'] as String, 'home'),
+            _buildInfoRow(
+                'सदस्यता मिति',
+                _formatDate(_userProfile['joinDate'] as DateTime),
+                'calendar_today'),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildInfoRow(String label, String value, String iconName) {
     return Padding(
-        padding: EdgeInsets.only(bottom: 2.h),
-        child: Row(children: [
+      padding: EdgeInsets.only(bottom: 2.h),
+      child: Row(
+        children: [
           CustomIconWidget(
               iconName: iconName,
               color: AppTheme.lightTheme.colorScheme.primary,
@@ -533,20 +479,24 @@ class _CitizenDashboardState extends State<CitizenDashboard>
                         style: AppTheme.lightTheme.textTheme.bodyMedium
                             ?.copyWith(fontWeight: FontWeight.w500)),
                   ])),
-        ]));
+        ],
+      ),
+    );
   }
 
   Widget _buildBottomTabBar() {
-    return Container(
+    return SafeArea(
+      top: false,
+      child: Container(
         decoration: BoxDecoration(
-            color: AppTheme.lightTheme.colorScheme.surface,
-            boxShadow: [
-              BoxShadow(
-                  color: AppTheme.lightTheme.colorScheme.shadow
-                      .withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, -2)),
-            ]),
+          color: AppTheme.lightTheme.colorScheme.surface,
+          boxShadow: [
+            BoxShadow(
+                color: AppTheme.lightTheme.colorScheme.shadow.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, -2)),
+          ],
+        ),
         child: TabBar(
             controller: _tabController,
             labelColor: AppTheme.lightTheme.colorScheme.primary,
@@ -576,36 +526,40 @@ class _CitizenDashboardState extends State<CitizenDashboard>
                   text: 'गुनासो'),
               Tab(
                   icon: CustomIconWidget(
-                      iconName: 'article',
+                      iconName: 'person',
                       color: _tabController.index == 2
                           ? AppTheme.lightTheme.colorScheme.primary
                           : AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                       size: 6.w),
-                  text: 'समाचार'),
-              Tab(
-                  icon: CustomIconWidget(
-                      iconName: 'person',
-                      color: _tabController.index == 3
-                          ? AppTheme.lightTheme.colorScheme.primary
-                          : AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                      size: 6.w),
                   text: 'प्रोफाइल'),
-            ]));
+            ]),
+      ),
+    );
   }
 
-  Widget _buildFloatingActionButton() {
+  Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton.extended(
-        onPressed: _submitComplaint,
-        backgroundColor: AppTheme.lightTheme.colorScheme.primary,
-        foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-        icon: CustomIconWidget(
-            iconName: 'add',
-            color: AppTheme.lightTheme.colorScheme.onPrimary,
-            size: 6.w),
-        label: Text('गुनासो दर्ता',
-            style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
-                color: AppTheme.lightTheme.colorScheme.onPrimary,
-                fontWeight: FontWeight.w600)));
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const GunasoForm()),
+        );
+      },
+      backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+      foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
+      icon: CustomIconWidget(
+        iconName: 'add',
+        color: AppTheme.lightTheme.colorScheme.onPrimary,
+        size: 6.w,
+      ),
+      label: Text(
+        'गुनासो दर्ता',
+        style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
+          color: AppTheme.lightTheme.colorScheme.onPrimary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 
   Future<void> _refreshData() async {
@@ -659,11 +613,6 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     print('View all notices');
   }
 
-  void _viewAllNews() {
-    // Navigate to all news screen
-    print('View all news');
-  }
-
   void _submitComplaint() {
     // Navigate to complaint submission form
     print('Submit new complaint');
@@ -673,3 +622,4 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     return '${date.day}/${date.month}/${date.year}';
   }
 }
+

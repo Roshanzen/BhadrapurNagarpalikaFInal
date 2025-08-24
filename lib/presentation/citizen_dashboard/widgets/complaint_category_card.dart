@@ -119,47 +119,53 @@ class ComplaintCategoryCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      isScrollControlled: true, // Allow bottom sheet to adjust height
       builder: (context) => Container(
-        padding: EdgeInsets.all(4.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 10.w,
-              height: 0.5.h,
-              decoration: BoxDecoration(
-                color: AppTheme.lightTheme.colorScheme.outline,
-                borderRadius: BorderRadius.circular(2),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        constraints: BoxConstraints(
+          maxHeight: 60.h, // Limit max height to prevent overflow
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 10.w,
+                height: 0.5.h,
+                decoration: BoxDecoration(
+                  color: AppTheme.lightTheme.colorScheme.outline,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            SizedBox(height: 3.h),
-            Text(
-              'Quick Actions',
-              style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+              SizedBox(height: 2.h),
+              Text(
+                'Quick Actions',
+                style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            SizedBox(height: 2.h),
-            _buildQuickActionTile(
-              context,
-              'View Status',
-              'visibility',
-                  () => Navigator.pop(context),
-            ),
-            _buildQuickActionTile(
-              context,
-              'Add Comment',
-              'comment',
-                  () => Navigator.pop(context),
-            ),
-            _buildQuickActionTile(
-              context,
-              'Share',
-              'share',
-                  () => Navigator.pop(context),
-            ),
-            SizedBox(height: 2.h),
-          ],
+              SizedBox(height: 1.h),
+              _buildQuickActionTile(
+                context,
+                'View Status',
+                'visibility',
+                    () => Navigator.pop(context),
+              ),
+              _buildQuickActionTile(
+                context,
+                'Add Comment',
+                'comment',
+                    () => Navigator.pop(context),
+              ),
+              _buildQuickActionTile(
+                context,
+                'Share',
+                'share',
+                    () => Navigator.pop(context),
+              ),
+              SizedBox(height: 2.h),
+            ],
+          ),
         ),
       ),
     );
@@ -172,6 +178,7 @@ class ComplaintCategoryCard extends StatelessWidget {
       VoidCallback onTap,
       ) {
     return ListTile(
+      contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 0.5.h),
       leading: CustomIconWidget(
         iconName: iconName,
         color: AppTheme.lightTheme.colorScheme.primary,
@@ -179,7 +186,10 @@ class ComplaintCategoryCard extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: AppTheme.lightTheme.textTheme.bodyMedium,
+        style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+          fontSize: 12.sp, // Slightly smaller font to prevent overflow
+        ),
+        overflow: TextOverflow.ellipsis,
       ),
       onTap: onTap,
       shape: RoundedRectangleBorder(

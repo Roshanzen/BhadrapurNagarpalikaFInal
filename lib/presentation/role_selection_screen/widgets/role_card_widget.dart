@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-
 import '../../../core/app_export.dart';
 
 class RoleCardWidget extends StatelessWidget {
@@ -31,20 +30,18 @@ class RoleCardWidget extends StatelessWidget {
         padding: EdgeInsets.all(4.w),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.1)
+              ? AppTheme.lightTheme.colorScheme.primary.withOpacity(0.1)
               : AppTheme.lightTheme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? AppTheme.lightTheme.colorScheme.primary
-                : AppTheme.lightTheme.colorScheme.outline
-                .withValues(alpha: 0.3),
+                : AppTheme.lightTheme.colorScheme.outline.withOpacity(0.3),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color:
-              AppTheme.lightTheme.colorScheme.shadow.withValues(alpha: 0.1),
+              color: AppTheme.lightTheme.colorScheme.shadow.withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -53,21 +50,10 @@ class RoleCardWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 15.w,
-              height: 15.w,
-              decoration: BoxDecoration(
-                color: AppTheme.lightTheme.colorScheme.primary
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: CustomIconWidget(
-                  iconName: iconName,
-                  color: AppTheme.lightTheme.colorScheme.primary,
-                  size: 8.w,
-                ),
-              ),
+            CustomIconWidget(
+              iconName: iconName,
+              color: AppTheme.lightTheme.colorScheme.primary,
+              size: 8.w,
             ),
             SizedBox(height: 2.h),
             Text(

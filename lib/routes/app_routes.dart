@@ -11,7 +11,6 @@ import '../presentation/notice_board_management/notice_board_management.dart';
 
 
 class AppRoutes {
-  // TODO: Add your routes here
   static const String initial = '/';
   static const String officerDashboard = '/officer-dashboard';
   static const String officerLogin = '/officer-login-screen';
@@ -34,6 +33,7 @@ class AppRoutes {
     complaintSubmissionForm: (context) => const ComplaintSubmissionForm(),
     complaintDetailView: (context) => const ComplaintDetailView(),
     noticeBoardManagement: (context) => const NoticeBoardManagement(),
-    // TODO: Add your other routes here
+
+    // Add other routes here
   };
 }
