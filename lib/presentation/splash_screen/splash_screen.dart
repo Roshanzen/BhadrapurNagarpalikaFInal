@@ -181,8 +181,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         scale: _logoScaleAnimation.value,
                         child: Image.asset(
                           'assets/images/logo.png',
-                          width: 35.w,
-                          height: 35.w,
+                          width: 55.w,
+                          height: 55.w,
                           fit: BoxFit.contain,
                         ),
                       );
@@ -210,12 +210,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: 1.h),
+                          SizedBox(height: 10.h),
                           Text(
                             'भद्रपुर नगरपालिका गुनासो पोर्टलमा',
                             style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
                               color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.9),
-                              fontSize: 12.sp,
+                              fontSize: 22.sp,
                             ),
                             textAlign: TextAlign.center,
                           ),

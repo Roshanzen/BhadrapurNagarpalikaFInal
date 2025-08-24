@@ -168,132 +168,145 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
         return false;
       },
       child: Scaffold(
-        backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
         body: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              children: [
-                // Header with language toggle and help
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      LanguageToggleWidget(
-                        isNepali: _isNepali,
-                        onToggle: _toggleLanguage,
-                      ),
-                      GestureDetector(
-                        onTap: _showHelpBottomSheet,
-                        child: Padding(
-                          padding: EdgeInsets.all(2.w),
-                          child: Icon(
-                            Icons.help_outline,
-                            color: AppTheme.lightTheme.colorScheme.primary,
-                            size: 6.w,
+          child: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.teal, Colors.blue],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                children: [
+                  // Header with language toggle and help
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        LanguageToggleWidget(
+                          isNepali: _isNepali,
+                          onToggle: _toggleLanguage,
+                        ),
+                        GestureDetector(
+                          onTap: _showHelpBottomSheet,
+                          child: Padding(
+                            padding: EdgeInsets.all(2.w),
+                            child: Icon(
+                              Icons.help_outline,
+                              color: Colors.white,
+                              size: 6.w,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                // Logo and title section
-                Expanded(
-                  flex: 2,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
+
+                  // Logo and title section
+                  Expanded(
+                    flex: 2,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/logo.png',
+                            width: 25.w,
+                            height: 25.w,
+                            fit: BoxFit.contain,
+                          ),
+                          SizedBox(height: 3.h),
+                          Text(
+                            _isNepali ? "भद्रपुर नगरपालिका" : "Bhadrapur Nagarpalika",
+                            style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 1.h),
+                          Text(
+                            _isNepali ? "गुनासो व्यवस्थापन पोर्टल" : "Complaint Management Portal",
+                            style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Role selection cards
+                  Expanded(
+                    flex: 3,
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset(
-                          'assets/images/logo.png',
-                          width: 25.w,
-                          height: 25.w,
-                          fit: BoxFit.contain,
+                        Text(
+                          _isNepali ? "आफ्नो भूमिका छान्नुहोस्" : "Select Your Role",
+                          style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                         SizedBox(height: 3.h),
-                        Text(
-                          _isNepali ? "भद्रपुर नगरपालिका" : "Bhadrapur Nagarpalika",
-                          style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.lightTheme.colorScheme.primary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 1.h),
-                        Text(
-                          _isNepali ? "गुनासो व्यवस्थापन पोर्टल" : "Complaint Management Portal",
-                          style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                            color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Role selection cards
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    children: [
-                      Text(
-                        _isNepali ? "आफ्नो भूमिका छान्नुहोस्" : "Select Your Role",
-                        style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.lightTheme.colorScheme.onSurface,
-                        ),
-                      ),
-                      SizedBox(height: 3.h),
-                      Expanded(
-                        child: ListView.builder(
-                          padding: EdgeInsets.symmetric(horizontal: 2.w),
-                          itemCount: _roleData.length,
-                          itemBuilder: (context, index) {
-                            final role = _roleData[index];
-                            return RoleCardWidget(
-                              roleTitle: _isNepali ? role["titleNepali"] : role["titleEnglish"],
-                              roleSubtitle: _isNepali ? role["subtitleNepali"] : role["subtitleEnglish"],
-                              roleDescription: _isNepali ? role["descriptionNepali"] : role["descriptionEnglish"],
-                              iconName: role["icon"],
-                              isSelected: _selectedRole == index,
-                              onTap: () => _selectRole(index),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Need Help section
-                Padding(
-                  padding: EdgeInsets.all(4.w),
-                  child: GestureDetector(
-                    onTap: _showHelpBottomSheet,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.support_agent,
-                          color: AppTheme.lightTheme.colorScheme.primary,
-                          size: 5.w,
-                        ),
-                        SizedBox(width: 2.w),
-                        Text(
-                          _isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
-                          style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
-                            color: AppTheme.lightTheme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+                        Expanded(
+                          child: ListView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 2.w),
+                            itemCount: _roleData.length,
+                            itemBuilder: (context, index) {
+                              final role = _roleData[index];
+                              return RoleCardWidget(
+                                roleTitle: _isNepali ? role["titleNepali"] : role["titleEnglish"],
+                                roleSubtitle: _isNepali ? role["subtitleNepali"] : role["subtitleEnglish"],
+                                roleDescription: _isNepali ? role["descriptionNepali"] : role["descriptionEnglish"],
+                                iconName: role["icon"],
+                                isSelected: _selectedRole == index,
+                                onTap: () => _selectRole(index),
+                              );
+                            },
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+
+                  // Need Help section
+                  Padding(
+                    padding: EdgeInsets.all(4.w),
+                    child: GestureDetector(
+                      onTap: _showHelpBottomSheet,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.support_agent,
+                            color: Colors.white,
+                            size: 5.w,
+                          ),
+                          SizedBox(width: 2.w),
+                          Text(
+                            _isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
+                            style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

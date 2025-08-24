@@ -14,8 +14,8 @@ class CustomImageWidget extends StatelessWidget {
   const CustomImageWidget({
     Key? key,
     required this.imageUrl,
-    this.width = 60,
-    this.height = 60,
+    this.width = 50,
+    this.height = 50,
     this.fit = BoxFit.cover,
     this.errorWidget,
   }) : super(key: key);
