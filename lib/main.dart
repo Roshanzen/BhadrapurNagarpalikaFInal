@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
 import '../core/app_export.dart';
 import '../widgets/custom_error_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Facebook Auth
+  await FacebookAuth.instance.webAndDesktopInitialize(
+    appId: "859204013459962",
+    cookie: true,
+    xfbml: true,
+    version: "v17.0",
+  );
 
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
   ErrorWidget.builder = (FlutterErrorDetails details) {

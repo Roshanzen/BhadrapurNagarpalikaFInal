@@ -10,7 +10,7 @@ dependencies:
   flutter:       # CRITICAL: Required for every Flutter project - DO NOT REMOVE
    sdk: flutter # CRITICAL: Required for every Flutter project - DO NOT REMOVE
   http: ^1.2.1
-  flutter_facebook_auth: ^6.1.0
+  flutter_facebook_auth: ^7.1.2
   # CRITICAL: Core UI and responsive design - DO NOT REMOVE OR MODIFY
   sizer: ^2.0.15              # Required for responsive design system
   flutter_svg: ^2.0.9        # Required for SVG icon support
