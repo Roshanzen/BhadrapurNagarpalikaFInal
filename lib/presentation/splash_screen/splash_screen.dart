@@ -215,7 +215,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             'भद्रपुर नगरपालिका गुनासो पोर्टलमा',
                             style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
                               color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.9),
-                              fontSize: 22.sp,
+                              fontSize: 17.sp,
                             ),
                             textAlign: TextAlign.center,
                           ),

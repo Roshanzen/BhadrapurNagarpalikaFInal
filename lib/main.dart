@@ -8,7 +8,8 @@ import '../widgets/custom_error_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+
   // Initialize Facebook Auth
   await FacebookAuth.instance.webAndDesktopInitialize(
     appId: "859204013459962",

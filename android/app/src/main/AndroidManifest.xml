@@ -23,6 +23,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- google sign-in configurations -->
+        <meta-data
+            android:name="com.google.android.gms.client_id"
+            android:value="414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com"/>
+        <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:excludeFromRecents="true"
+            android:exported="false" />
+
 
         <!-- Facebook SDK configurations -->
         <meta-data
