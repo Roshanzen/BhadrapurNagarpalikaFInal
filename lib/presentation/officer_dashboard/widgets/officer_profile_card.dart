@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../../core/app_export.dart';
+import '../../../core/app_export.dart'; // Make sure you have the necessary imports
 
 class OfficerProfileCard extends StatelessWidget {
   final String officerName;
@@ -24,12 +24,11 @@ class OfficerProfileCard extends StatelessWidget {
       margin: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: AppTheme.lightTheme.colorScheme.surface,
+        color: Colors.white, // Example color, replace with AppTheme if needed
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color:
-            AppTheme.lightTheme.colorScheme.shadow.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -43,13 +42,13 @@ class OfficerProfileCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppTheme.lightTheme.colorScheme.primary,
+                color: Colors.blue, // Example color
                 width: 2,
               ),
             ),
             child: ClipOval(
-              child: CustomImageWidget(
-                imageUrl: profileImage,
+              child: Image.network(
+                profileImage,
                 width: 15.w,
                 height: 15.w,
                 fit: BoxFit.cover,
@@ -63,17 +62,17 @@ class OfficerProfileCard extends StatelessWidget {
               children: [
                 Text(
                   officerName,
-                  style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.lightTheme.colorScheme.onSurface,
+                    color: Colors.black, // Example color
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 0.5.h),
                 Text(
                   designation,
-                  style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                  style: TextStyle(
+                    color: Colors.grey, // Example color
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -86,12 +85,12 @@ class OfficerProfileCard extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.all(2.w),
               decoration: BoxDecoration(
-                color: AppTheme.lightTheme.colorScheme.errorContainer,
+                color: Colors.red, // Example color
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: CustomIconWidget(
-                iconName: 'logout',
-                color: AppTheme.lightTheme.colorScheme.error,
+              child: Icon(
+                Icons.logout,
+                color: Colors.white,
                 size: 20,
               ),
             ),

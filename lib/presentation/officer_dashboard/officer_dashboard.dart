@@ -111,6 +111,10 @@ class _OfficerDashboardState extends State<OfficerDashboard>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    // ensure FAB visibility updates when tab changes
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -184,7 +188,7 @@ class _OfficerDashboardState extends State<OfficerDashboard>
   void _showComplaintActions(Map<String, dynamic> complaint) {
     showModalBottomSheet(
       context: context,
-      shape: RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (BuildContext context) {
@@ -391,6 +395,8 @@ class _OfficerDashboardState extends State<OfficerDashboard>
         backgroundColor: AppTheme.lightTheme.colorScheme.primary,
         foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
         elevation: 0,
+        automaticallyImplyLeading:
+        false, // 🚫 removes the default back icon & behavior
         actions: [
           NotificationBadge(
             count: _notificationCount,
@@ -403,8 +409,8 @@ class _OfficerDashboardState extends State<OfficerDashboard>
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppTheme.lightTheme.colorScheme.onPrimary,
-          unselectedLabelColor:
-          AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.7),
+          unselectedLabelColor: AppTheme.lightTheme.colorScheme.onPrimary
+              .withValues(alpha: 0.7),
           indicatorColor: AppTheme.lightTheme.colorScheme.onPrimary,
           labelStyle: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.w500,
@@ -429,7 +435,8 @@ class _OfficerDashboardState extends State<OfficerDashboard>
             SizedBox(height: 2.h),
             Text(
               'डाटा लोड गर्दै...',
-              style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+              style:
+              AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                 color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
               ),
             ),
@@ -452,7 +459,7 @@ class _OfficerDashboardState extends State<OfficerDashboard>
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            shape: RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
               borderRadius:
               BorderRadius.vertical(top: Radius.circular(16)),
             ),
@@ -466,15 +473,16 @@ class _OfficerDashboardState extends State<OfficerDashboard>
                       width: 12.w,
                       height: 0.5.h,
                       decoration: BoxDecoration(
-                        color: AppTheme
-                            .lightTheme.colorScheme.onSurfaceVariant,
+                        color: AppTheme.lightTheme.colorScheme
+                            .onSurfaceVariant,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                     SizedBox(height: 2.h),
                     Text(
                       'गुनासो जवाफ फारम',
-                      style: AppTheme.lightTheme.textTheme.titleMedium
+                      style: AppTheme
+                          .lightTheme.textTheme.titleMedium
                           ?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -484,10 +492,11 @@ class _OfficerDashboardState extends State<OfficerDashboard>
                       child: Center(
                         child: Text(
                           'गुनासो जवाफ फारम निर्माणाधीन छ',
-                          style: AppTheme.lightTheme.textTheme.bodyMedium
+                          style: AppTheme.lightTheme.textTheme
+                              .bodyMedium
                               ?.copyWith(
-                            color: AppTheme
-                                .lightTheme.colorScheme.onSurfaceVariant,
+                            color: AppTheme.lightTheme.colorScheme
+                                .onSurfaceVariant,
                           ),
                         ),
                       ),

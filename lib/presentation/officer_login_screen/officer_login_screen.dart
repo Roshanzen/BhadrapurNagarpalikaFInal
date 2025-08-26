@@ -1,14 +1,18 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:sizer/sizer.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:sizer/sizer.dart';
+
 import '../../core/app_export.dart';
 import './widgets/login_form_widget.dart';
 import './widgets/municipal_header_widget.dart';
 
 class OfficerLoginScreen extends StatefulWidget {
   const OfficerLoginScreen({Key? key}) : super(key: key);
+
   @override
   State<OfficerLoginScreen> createState() => _OfficerLoginScreenState();
 }
@@ -16,6 +20,14 @@ class OfficerLoginScreen extends StatefulWidget {
 class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
   bool _loading = false, _nepali = false;
   String? _error;
+
+  // ---- CONFIG ----
+  static const _scheme = 'https';
+  static const _host = 'uat.nirc.com.np';
+  static const _port = 8443;
+
+  // WORKING credential endpoint you provided
+  static const _loginPath = '/GWP/user/login';
 
   String t(String np, String en) => _nepali ? np : en;
 
@@ -25,47 +37,84 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
       _error = null;
     });
 
-    try {
-      final response = await http.post(
-        Uri.parse('https://uat.nirc.com.np:8443/GWP/user/isLogin'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      ).timeout(const Duration(seconds: 10));
+    final u = username.trim();
+    final p = password.trim();
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['message'] == 'success') {
-          HapticFeedback.lightImpact();
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, '/officer-dashboard');
-          }
-        } else {
-          setState(() {
-            _error = t('गलत प्रयोगकर्ता नाम वा पासवर्ड।', 'Invalid username or password.');
-          });
-          HapticFeedback.heavyImpact();
-        }
-      } else {
-        setState(() {
-          _error = t('सर्भर समस्याको कारण लगइन असफल भयो।', 'Login failed due to server issue.');
-        });
-        HapticFeedback.heavyImpact();
+    if (u.isEmpty || p.isEmpty) {
+      setState(() => _error = t('कृपया प्रयोगकर्ता नाम र पासवर्ड भर्नुहोस्।',
+          'Please enter username and password.'));
+      _snack(_error!);
+      setState(() => _loading = false);
+      return;
+    }
+
+    try {
+      final uri =
+      Uri(scheme: _scheme, host: _host, port: _port, path: _loginPath);
+
+      final resp = await http
+          .post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': u, 'password': p}),
+      )
+          .timeout(const Duration(seconds: 15));
+
+      // Attempt to parse JSON
+      Map<String, dynamic>? data;
+      try {
+        data = jsonDecode(resp.body) as Map<String, dynamic>?;
+      } catch (_) {
+        data = null;
       }
+
+      if (resp.statusCode == 200 &&
+          data != null &&
+          (data['status']?.toString().toLowerCase() == 'success')) {
+        HapticFeedback.lightImpact();
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/officer-dashboard');
+        return;
+      }
+
+      // Surface server message if any
+      final serverMsg = (data?['message']?.toString().trim() ?? '');
+      setState(() {
+        _error = serverMsg.isNotEmpty
+            ? t('लगइन अस्वीकार: $serverMsg', 'Login rejected: $serverMsg')
+            : t('गलत प्रयोगकर्ता नाम वा पासवर्ड।',
+            'Incorrect username or password.');
+      });
+      _snack(_error!);
+      HapticFeedback.heavyImpact();
+    } on TimeoutException {
+      setState(() {
+        _error = t('नेटवर्क ढिलो भयो। पुन: प्रयास गर्नुहोस्।',
+            'Network timed out. Please try again.');
+      });
+      _snack(_error!);
+      HapticFeedback.heavyImpact();
     } catch (e) {
       setState(() {
-        _error = t('नेटवर्क समस्याको कारण लगइन असफल भयो।', 'Login failed due to network issue.');
+        _error = t('नेटवर्क समस्याको कारण लगइन असफल भयो।',
+            'Login failed due to a network issue.');
       });
+      _snack('${t("नेटवर्क त्रुटि", "Network error")}: $e');
       HapticFeedback.heavyImpact();
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+      if (mounted) setState(() => _loading = false);
     }
+  }
+
+  void _snack(String t) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t)));
   }
 
   @override
   Widget build(BuildContext context) {
     final th = AppTheme.lightTheme, p = th.colorScheme.primary;
+
     return Scaffold(
       backgroundColor: th.scaffoldBackgroundColor,
       body: GestureDetector(
@@ -87,7 +136,8 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
                           _error = null;
                         }),
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 4.w, vertical: 1.h),
                           decoration: BoxDecoration(
                             color: p.withOpacity(0.1),
                             border: Border.all(color: p.withOpacity(0.3)),
@@ -96,7 +146,8 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              CustomIconWidget(iconName: 'language', color: p, size: 16),
+                              CustomIconWidget(
+                                  iconName: 'language', color: p, size: 16),
                               SizedBox(width: 1.w),
                               Text(
                                 _nepali ? 'EN' : 'नेपाली',
@@ -129,7 +180,8 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
                         children: [
                           Row(
                             children: [
-                              CustomIconWidget(iconName: 'help_outline', color: p, size: 20),
+                              CustomIconWidget(
+                                  iconName: 'help_outline', color: p, size: 20),
                               SizedBox(width: 2.w),
                               Text(
                                 t('सहायता चाहिन्छ?', 'Need Help?'),
@@ -165,8 +217,10 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _loading
                         ? null
-                        : () => Navigator.pushReplacementNamed(context, '/role-selection-screen'),
-                    icon: CustomIconWidget(iconName: 'arrow_back', color: p, size: 20),
+                        : () => Navigator.pushReplacementNamed(
+                        context, '/role-selection-screen'),
+                    icon: CustomIconWidget(
+                        iconName: 'arrow_back', color: p, size: 20),
                     label: Text(
                       t('फिर्ता जानुहोस्', 'Go Back'),
                       style: th.textTheme.labelLarge?.copyWith(
