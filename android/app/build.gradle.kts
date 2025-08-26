@@ -46,6 +46,6 @@ flutter {
 
 dependencies {
     implementation("com.facebook.android:facebook-android-sdk:18.1.3")
-    implementation ("com.google.android.gms:play-services-auth:21.4.0")
+    implementation ("com.google.android.gms:play-services-auth:4.3.0")
 
 }
