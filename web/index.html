@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <base href="$FLUTTER_BASE_HREF">
 
@@ -8,7 +8,7 @@
   <meta name="description" content="A new Flutter project.">
 
   <!-- Google Sign-In -->
-  <meta name="google-signin-client_id" content="414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com">
+  <meta name="google-signin-client_id" content="902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- iOS meta tags & icons -->
@@ -22,34 +22,62 @@
 
   <title>bhadrapurnagarpalika</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js"></script>
 </head>
 <body>
 <!-- Google Sign-In Button container -->
 <div id="g_id_onload"
-     data-client_id="414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com"
+     data-client_id="902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com"
      data-login_uri="http://localhost:5000"
      data-auto_prompt="false">
 </div>
 
 <div id="sign-in-div"></div>
 
-<!-- Google Sign-In initialization script -->
+<!-- Firebase Initialization Script -->
 <script>
+  // Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDwQiAQhUg8IA9BfcKh1N_ejgIxC1yB73o",
+    authDomain: "bhadrapur-nagarpalika-bc1fb.firebaseapp.com",
+    projectId: "bhadrapur-nagarpalika-bc1fb",
+    storageBucket: "bhadrapur-nagarpalika-bc1fb.appspot.com",
+    messagingSenderId: "902022025384",
+    appId: "1:902022025384:web:cf2f94aa2312df7197f29d",
+    measurementId: "G-MEASUREMENT_ID" // Add the correct measurement ID if you use analytics
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const analytics = firebase.analytics(app);
+
+  // Google Sign-In initialization
   window.onload = function() {
     google.accounts.id.initialize({
-      client_id: "414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com",
+      client_id: "902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com",
       callback: function(response) {
         console.log("ID Token:", response.credential);
-        // You can send this token to your Flutter app via JS interop
+        // Send the ID token to Firebase for authentication
+        const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
+        auth.signInWithCredential(credential).then((result) => {
+          console.log("User signed in successfully:", result.user);
+        }).catch((error) => {
+          console.error("Error signing in:", error);
+        });
       }
     });
+
     google.accounts.id.renderButton(
       document.getElementById("sign-in-div"),
-      { theme: "outline", size: "large" }  // customize button appearance
+      { theme: "outline", size: "large" }  // Customize button appearance
     );
 
-       google.accounts.id.prompt(); // optional: shows automatic one-tap prompt
-  };
+    google.accounts.id.prompt(); // Optional: shows automatic one-tap prompt
   };
 </script>
 

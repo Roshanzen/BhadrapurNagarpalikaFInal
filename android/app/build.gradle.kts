@@ -1,9 +1,10 @@
+// App-level build.gradle.kts (in android/app/)
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services") // Add this
+    id("com.google.gms.google-services") // Add this to apply Google services plugin
 }
 
 android {
@@ -21,10 +22,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.bhadrapurnagarpalika"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -33,8 +31,6 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -45,7 +41,9 @@ flutter {
 }
 
 dependencies {
-    implementation("com.facebook.android:facebook-android-sdk:18.1.3")
-    implementation ("com.google.android.gms:play-services-auth:4.3.0")
-
+    implementation("com.facebook.android:facebook-android-sdk:18.1.3") // Facebook SDK
+    implementation("com.google.android.gms:play-services-auth:4.3.0") // Google Sign-In
+    implementation(platform("com.google.firebase:firebase-bom:34.1.0")) // Firebase BOM for consistent versions
+    implementation("com.google.firebase:firebase-analytics") // Firebase Analytics
+    implementation("com.google.firebase:firebase-auth") // Firebase Authentication
 }

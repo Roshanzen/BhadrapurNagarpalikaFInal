@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth import
 
 class GoogleSignInService {
   // Web client ID (required for web)
@@ -55,4 +56,27 @@ class GoogleSignInService {
 
   /// Current user
   static GoogleSignInAccount? get currentUser => _instance.currentUser;
+
+  // Firebase Sign-in method
+  static Future<User?> firebaseSignInWithGoogle(GoogleSignInAccount account) async {
+    try {
+      // Get Google Authentication details
+      final GoogleSignInAuthentication auth = await account.authentication;
+
+      // Create a new credential with the Google authentication tokens
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        idToken: auth.idToken,
+        accessToken: auth.accessToken,
+      );
+
+      // Sign in to Firebase with the Google credentials
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      return user; // Return Firebase User
+    } catch (e) {
+      print("Firebase Sign-In Error: $e");
+      return null;
+    }
+  }
 }

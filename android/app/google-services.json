@@ -1,1 +1,30 @@
-{"installed":{"client_id":"414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com","project_id":"bhadrapur-nagarpalika-469406","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs"}}
+
+project_info
+project_number	"902022025384"
+project_id	"bhadrapur-nagarpalika-bc1fb"
+storage_bucket	"bhadrapur-nagarpalika-bc1fb.firebasestorage.app"
+client
+0
+client_info
+mobilesdk_app_id	"1:902022025384:android:6fe45903e0245de297f29d"
+android_client_info
+package_name	"com.example.bhadrapur_nagarpalika"
+oauth_client
+0
+client_id	"902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com"
+client_type	3
+api_key
+0
+current_key	"AIzaSyDwQiAQhUg8IA9BfcKh1N_ejgIxC1yB73o"
+services
+appinvite_service
+other_platform_oauth_client
+0
+client_id	"902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com"
+client_type	3
+1
+client_id	"902022025384-tt75l6b4ikfpvkn9kvkelcorhdm5hik0.apps.googleusercontent.com"
+client_type	2
+ios_info
+bundle_id	"com.example.bhadrapurNagarpalika"
+configuration_version	"1"
