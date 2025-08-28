@@ -13,8 +13,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+
         classpath("com.google.gms:google-services:4.4.3") // Ensure you're using the latest version
-        classpath("com.android.tools.build:gradle:7.0.4") // Specify the appropriate Android Gradle plugin version
+        classpath("com.android.tools.build:gradle:7.1.2") // Specify the appropriate Android Gradle plugin version
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31") // Add Kotlin plugin dependency
     }
 }

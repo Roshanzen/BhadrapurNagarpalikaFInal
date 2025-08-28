@@ -49,36 +49,45 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
     super.dispose();
   }
 
-  // ---------------- GOOGLE LOGIN ----------------
   Future<void> _handleGoogleAuth() async {
     setState(() => _isGoogleLoading = true);
+
     try {
+      // Trigger Google sign-in
       final GoogleSignInAccount? account = await GoogleSignInService.signIn();
       if (account == null) {
         _showErrorSnackBar('Google sign-in cancelled.');
         return;
       }
 
+      // Get Google Authentication details (ID Token, Access Token)
       final auth = await GoogleSignInService.getAuth(account);
 
-      // Call backend like Facebook login
-      await _callBackendApi(
-        account.id,
-        account.displayName ?? '',
-        account.email,
-      );
+      // Firebase authentication using the Google account
+      final user = await GoogleSignInService.firebaseSignInWithGoogle(account);
+      if (user == null) {
+        _showErrorSnackBar('Firebase authentication failed.');
+        return;
+      }
 
-      // Save Google info in SharedPreferences
+      // Save Google and Firebase tokens in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('googleId', account.id);
       await prefs.setString('googleName', account.displayName ?? '');
       await prefs.setString('googleEmail', account.email);
       await prefs.setString('googlePhoto', account.photoUrl ?? '');
-      await prefs.setString('googleIdToken', auth?.idToken ?? '');
-      await prefs.setString('googleAccessToken', auth?.accessToken ?? '');
 
+      // Save Google Access Token and ID Token
+      await prefs.setString('googleIdToken', auth?['idToken'] ?? '');
+      await prefs.setString('googleAccessToken', auth?['accessToken'] ?? '');
+
+      // Store Firebase refreshToken (if necessary)
+      await prefs.setString('firebaseRefreshToken', user.refreshToken ?? '');
+
+      // Provide haptic feedback for mobile if needed
       if (!kIsWeb) HapticFeedback.lightImpact();
 
+      // Show the ward selection modal (or any next step after sign-in)
       _showWardSelectionModal();
     } catch (e) {
       _showErrorSnackBar('Google authentication failed: $e');

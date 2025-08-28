@@ -1,81 +1,76 @@
+// lib/services/google_signin_service.dart
+
 import 'dart:async';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth import
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GoogleSignInService {
-  // Web client ID (required for web)
-  static const String _webClientId =
-      '414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com';
-
-  // Android server client ID (for ID token, optional)
   static const String _androidServerClientId =
-      '414690786328-6ffv882ffbmr36qrnhjarrenvk38u0q6.apps.googleusercontent.com';
-
-  // iOS client ID (optional)
+      '902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com';
   static const String? _iosClientId = null;
 
-  // Initialize the GoogleSignIn instance
   static final GoogleSignIn _instance = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    clientId: kIsWeb ? _webClientId : _iosClientId,
-    serverClientId: !kIsWeb && Platform.isAndroid ? _androidServerClientId : null,
+    scopes: const ['email', 'profile'],
+    clientId: _iosClientId,
+    serverClientId: Platform.isAndroid ? _androidServerClientId : null,
   );
 
-  /// Trigger Google Sign-In
   static Future<GoogleSignInAccount?> signIn() async {
     try {
       return await _instance.signIn();
     } catch (e) {
-      print('Google Sign-In error: $e');
+      debugPrint('Google Sign-In error: $e');
       return null;
     }
   }
 
-  /// Sign in silently (if user already signed in)
   static Future<GoogleSignInAccount?> signInSilently() async {
     try {
       return await _instance.signInSilently();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Google Silent Sign-In error: $e');
       return null;
     }
   }
 
-  /// Get auth tokens (accessToken + idToken)
-  static Future<GoogleSignInAuthentication?> getAuth(GoogleSignInAccount account) async {
+  static Future<void> signOut() async {
     try {
-      return await account.authentication;
-    } catch (_) {
-      return null;
+      await _instance.signOut();
+      await FirebaseAuth.instance.signOut();
+    } catch (e) {
+      debugPrint('Sign out error: $e');
     }
   }
 
-  /// Sign out
-  static Future<void> signOut() async => await _instance.signOut();
-
-  /// Current user
   static GoogleSignInAccount? get currentUser => _instance.currentUser;
 
-  // Firebase Sign-in method
+  static Future<Map<String, String>?> getAuth(GoogleSignInAccount account) async {
+    try {
+      final GoogleSignInAuthentication auth = await account.authentication;
+      return {
+        'idToken': auth.idToken ?? '',
+        'accessToken': auth.accessToken ?? '',
+      };
+    } catch (e) {
+      debugPrint('Get Auth error: $e');
+      return null;
+    }
+  }
+
   static Future<User?> firebaseSignInWithGoogle(GoogleSignInAccount account) async {
     try {
-      // Get Google Authentication details
-      final GoogleSignInAuthentication auth = await account.authentication;
-
-      // Create a new credential with the Google authentication tokens
+      final GoogleSignInAuthentication tokens = await account.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: auth.idToken,
-        accessToken: auth.accessToken,
+        idToken: tokens.idToken,
+        accessToken: tokens.accessToken,
       );
-
-      // Sign in to Firebase with the Google credentials
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      final User? user = userCredential.user;
-
-      return user; // Return Firebase User
+      final UserCredential uc =
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      return uc.user;
     } catch (e) {
-      print("Firebase Sign-In Error: $e");
+      debugPrint("Firebase Sign-In Error: $e");
       return null;
     }
   }

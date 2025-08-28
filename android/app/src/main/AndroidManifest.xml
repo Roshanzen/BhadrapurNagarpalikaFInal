@@ -1,7 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- android/app/src/main/AndroidManifest.xml -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.bhadrapur_nagarpalika">
+
     <application
-        android:label="bhadrapurnagarpalika"
-        android:name="${Bhadrapur Nagarpalika}"
+        android:label="Bhadrapur Nagarpalika"
         android:icon="@mipmap/ic_launcher">
 
         <activity
@@ -32,7 +34,6 @@
             android:excludeFromRecents="true"
             android:exported="false" />
 
-
         <!-- Facebook SDK configurations -->
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
@@ -49,10 +50,7 @@
             android:name="com.facebook.CustomTabActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/fb_login_protocol_scheme" />
+                <!-- ... -->
             </intent-filter>
         </activity>
 
@@ -65,8 +63,7 @@
     <!-- Required to query activities that can process text -->
     <queries>
         <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
+            <!-- ... -->
         </intent>
     </queries>
 </manifest>
