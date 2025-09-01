@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.bhadrapur_nagarpalika'
+    namespace 'com.example.bhadrapurnagarpalika'
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion '27.0.12077973'
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.example.bhadrapur_nagarpalika'
+        applicationId 'com.example.bhadrapurnagarpalika'
         minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode

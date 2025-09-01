@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -29,14 +30,18 @@ class CustomImageWidget extends StatelessWidget {
       height: height,
       fit: fit,
 
-      // Use caller-supplied widget if provided, else fallback asset.
+      // Use caller-supplied widget if provided, else fallback to a colored container.
       errorWidget: (context, url, error) =>
       errorWidget ??
-          Image.asset(
-            "assets/images/no-image.jpg",
-            fit: fit,
+          Container(
             width: width,
             height: height,
+            color: Colors.grey[300],
+            child: Icon(
+              Icons.image_not_supported,
+              color: Colors.grey[600],
+              size: width * 0.4, // Scale icon relative to container size
+            ),
           ),
 
       placeholder: (context, url) => Container(

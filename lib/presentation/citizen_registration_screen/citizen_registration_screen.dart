@@ -11,6 +11,7 @@ import '../../core/app_export.dart';
 import './widgets/privacy_notice_modal.dart';
 import './widgets/ward_selection_modal.dart';
 import '../../services/google_signin_service.dart';
+import '../citizen_dashboard/citizen_dashboard.dart';
 
 class CitizenRegistrationScreen extends StatefulWidget {
   const CitizenRegistrationScreen({Key? key}) : super(key: key);
@@ -71,8 +72,22 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
       // Provide haptic feedback for mobile if needed
       if (!kIsWeb) HapticFeedback.lightImpact();
 
-      // Show the ward selection modal (or any next step after sign-in)
-      _showWardSelectionModal();
+      // Store Google user data for dashboard
+      final googleUserData = {
+        'federatedId': 'https://accounts.google.com/${user.uid}',
+        'providerId': 'google.com',
+        'email': user.email ?? '',
+        'emailVerified': user.emailVerified,
+        'firstName': user.displayName?.split(' ')[0] ?? '',
+        'fullName': user.displayName ?? '',
+        'lastName': user.displayName?.split(' ').skip(1).join(' ') ?? '',
+        'photoUrl': user.photoURL ?? '',
+        'localId': user.uid,
+        'displayName': user.displayName ?? '',
+      };
+
+      // Show the ward selection modal with Google user data
+      _showWardSelectionModal(googleUserData);
     } catch (e) {
       _showErrorSnackBar('Google authentication failed: $e');
     } finally {
@@ -156,18 +171,18 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
     }
   }
 
-  void _showWardSelectionModal() {
+  void _showWardSelectionModal([Map<String, dynamic>? googleUserData]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => WardSelectionModal(
-        onWardSelected: _handleWardSelection,
+        onWardSelected: (wardNumber) => _handleWardSelection(wardNumber, googleUserData),
       ),
     );
   }
 
-  void _handleWardSelection(int wardNumber) {
+  void _handleWardSelection(int wardNumber, [Map<String, dynamic>? googleUserData]) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Registration successful! Welcome to Ward $wardNumber'),
       backgroundColor: Colors.green,
@@ -175,7 +190,12 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     ));
     Future.delayed(const Duration(milliseconds: 500), () {
-      Navigator.pushReplacementNamed(context, '/citizen-dashboard');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CitizenDashboard(googleUserData: googleUserData),
+        ),
+      );
     });
   }
 

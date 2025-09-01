@@ -12,7 +12,9 @@ import './widgets/profile_drawer.dart';
 import './widgets/suchana_board_card.dart';
 
 class CitizenDashboard extends StatefulWidget {
-  const CitizenDashboard({Key? key}) : super(key: key);
+  final Map<String, dynamic>? googleUserData;
+
+  const CitizenDashboard({Key? key, this.googleUserData}) : super(key: key);
 
   @override
   State<CitizenDashboard> createState() => _CitizenDashboardState();
@@ -25,17 +27,58 @@ class _CitizenDashboardState extends State<CitizenDashboard>
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   int _notificationCount = 3;
+  bool _showWelcomeBox = true;
 
-  final Map<String, dynamic> _userProfile = {
-    "name": "राम बहादुर श्रेष्ठ",
-    "email": "ram.shrestha@gmail.com",
-    "phone": "+977-9841234567",
-    "ward": 5,
-    "address": "भद्रपुर-५, झापा",
-    "avatar":
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    "joinDate": DateTime.now().subtract(Duration(days: 180)),
-  };
+  late Map<String, dynamic> _userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+
+    // Initialize user profile with Google data if available
+    _initializeUserProfile();
+
+    // Auto-hide welcome box after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showWelcomeBox = false;
+        });
+      }
+    });
+  }
+
+  void _initializeUserProfile() {
+    if (widget.googleUserData != null) {
+      // Use Google user data
+      _userProfile = {
+        "name": widget.googleUserData!['displayName'] ?? widget.googleUserData!['fullName'] ?? 'नागरिक',
+        "email": widget.googleUserData!['email'] ?? '',
+        "phone": "+977-XXXXXXXXXX", // Default phone, can be updated later
+        "ward": 1, // Default ward, can be selected later
+        "address": "भद्रपुर नगरपालिका", // Default address
+        "avatar": widget.googleUserData!['photoUrl'] ?? widget.googleUserData!['picture'] ?? null,
+        "joinDate": DateTime.now(),
+        "isGoogleUser": true,
+        "googleId": widget.googleUserData!['localId'] ?? '',
+        "firstName": widget.googleUserData!['firstName'] ?? '',
+        "lastName": widget.googleUserData!['lastName'] ?? '',
+      };
+    } else {
+      // Use default profile
+      _userProfile = {
+        "name": "राम बहादुर श्रेष्ठ",
+        "email": "ram.shrestha@gmail.com",
+        "phone": "+977-9841234567",
+        "ward": 5,
+        "address": "भद्रपुर-५, झापा",
+        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+        "joinDate": DateTime.now().subtract(Duration(days: 180)),
+        "isGoogleUser": false,
+      };
+    }
+  }
 
   final List<Map<String, dynamic>> _complaintCategories = [
     {
@@ -104,11 +147,6 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
 
   @override
   void dispose() {
@@ -119,109 +157,238 @@ class _CitizenDashboardState extends State<CitizenDashboard>
 
   @override
   Widget build(BuildContext context) {
+    // Get exact screen dimensions using MediaQuery
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+
+    // Calculate available space accounting for all UI elements
+    final appBarHeight = 13.h; // Updated app bar height
+    final bottomNavHeight = 12.h; // Fixed bottom nav height
+    final safeAreaTop = mediaQuery.padding.top;
+    final safeAreaBottom = mediaQuery.padding.bottom;
+
+    // Available content area with extra buffer for safety
+    final availableHeight = screenHeight - appBarHeight - bottomNavHeight - safeAreaTop - safeAreaBottom - 5.h;
+    final availableWidth = screenWidth - 4.w;
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
       drawer: ProfileDrawer(userProfile: _userProfile),
       appBar: _buildAppBar(),
-      body: TabBarView(controller: _tabController, children: [
-        _buildHomeTab(),
-        _buildComplaintsTab(),
-        _buildProfileTab(),
-      ]),
+      body: Container(
+        constraints: BoxConstraints(
+          maxHeight: availableHeight,
+          maxWidth: availableWidth,
+          minHeight: 0,
+          minWidth: 0,
+        ),
+        child: OverflowBox(
+          maxHeight: availableHeight,
+          maxWidth: availableWidth,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildZeroOverflowHomeTab(availableHeight, availableWidth),
+              _buildZeroOverflowComplaintsTab(availableHeight, availableWidth),
+              _buildZeroOverflowProfileTab(availableHeight, availableWidth),
+            ],
+          ),
+        ),
+      ),
       bottomNavigationBar: _buildBottomTabBar(),
       floatingActionButton: _buildFloatingActionButton(context),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppTheme.lightTheme.colorScheme.primary,
-      foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-      elevation: 2,
-      leading: GestureDetector(
-        onTap: () => _scaffoldKey.currentState?.openDrawer(),
-        child: Padding(
-          padding: EdgeInsets.all(2.w),
-          child: CircleAvatar(
-            backgroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-            child: _userProfile['avatar'] != null
-                ? ClipOval(
-                child: CustomImageWidget(
-                    imageUrl: _userProfile['avatar'] as String,
-                    width: 10.w,
-                    height: 10.w,
-                    fit: BoxFit.cover))
-                : CustomIconWidget(
-                iconName: 'person',
-                color: AppTheme.lightTheme.colorScheme.primary,
-                size: 6.w),
+    return PreferredSize(
+      preferredSize: Size.fromHeight(13.h.toDouble()), // Match the toolbar height
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.lightTheme.colorScheme.primary,
+              AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ),
-      ),
-      title: _isSearching
-          ? TextField(
-          controller: _searchController,
-          autofocus: true,
-          style: TextStyle(
-              color: AppTheme.lightTheme.colorScheme.onPrimary,
-              fontSize: 14.sp),
-          decoration: InputDecoration(
-              hintText: 'गुनासो खोज्नुहोस्...',
-              hintStyle: TextStyle(
-                  color: AppTheme.lightTheme.colorScheme.onPrimary
-                      .withValues(alpha: 0.7),
-                  fontSize: 14.sp),
-              border: InputBorder.none),
-          onSubmitted: (value) => _performSearch(value))
-          : Text('भद्रपुर नगरपालिका',
-          style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-              color: AppTheme.lightTheme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w600)),
-      actions: [
-        IconButton(
-          onPressed: () {
-            setState(() {
-              _isSearching = !_isSearching;
-              if (!_isSearching) _searchController.clear();
-            });
-          },
-          icon: CustomIconWidget(
-              iconName: _isSearching ? 'close' : 'search',
-              color: AppTheme.lightTheme.colorScheme.onPrimary,
-              size: 6.w),
-        ),
-        Stack(
-          children: [
-            IconButton(
-                onPressed: () => _showNotifications(),
-                icon: CustomIconWidget(
-                    iconName: 'notifications',
-                    color: AppTheme.lightTheme.colorScheme.onPrimary,
-                    size: 6.w)),
-            _notificationCount > 0
-                ? Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                    padding: EdgeInsets.all(1.w),
-                    decoration: BoxDecoration(
-                        color: AppTheme.lightTheme.colorScheme.error,
-                        borderRadius: BorderRadius.circular(10)),
-                    constraints: BoxConstraints(minWidth: 5.w, minHeight: 5.w),
-                    child: Text(
-                      _notificationCount > 9 ? '9+' : '$_notificationCount',
-                      style: TextStyle(
-                          color: AppTheme.lightTheme.colorScheme.onError,
-                          fontSize: 8.sp,
-                          fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    )))
-                : const SizedBox.shrink(),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.lightTheme.colorScheme.shadow.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
           ],
         ),
-        SizedBox(width: 2.w),
-      ],
+        child: AppBar(
+          backgroundColor: Colors.transparent, // Make background transparent for gradient
+          foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
+          elevation: 0, // Remove default elevation since we have custom shadow
+          toolbarHeight: 13.h,
+          leading: GestureDetector(
+            onTap: () => _scaffoldKey.currentState?.openDrawer(),
+            child: Padding(
+              padding: EdgeInsets.all(2.w),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 4.5.w,
+                  backgroundColor: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.1),
+                  child: _userProfile['avatar'] != null
+                      ? ClipOval(
+                      child: CustomImageWidget(
+                          imageUrl: _userProfile['avatar'] as String,
+                          width: 9.w,
+                          height: 9.w,
+                          fit: BoxFit.cover))
+                      : CustomIconWidget(
+                      iconName: 'person',
+                      color: AppTheme.lightTheme.colorScheme.primary,
+                      size: 4.5.w),
+                ),
+              ),
+            ),
+          ),
+          title: _isSearching
+              ? Container(
+              height: 7.h,
+              decoration: BoxDecoration(
+                color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: TextField(
+                  controller: _searchController,
+                  autofocus: true,
+                  style: TextStyle(
+                      color: AppTheme.lightTheme.colorScheme.onPrimary,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w500),
+                  decoration: InputDecoration(
+                      hintText: 'गुनासो खोज्नुहोस्...',
+                      hintStyle: TextStyle(
+                          color: AppTheme.lightTheme.colorScheme.onPrimary
+                              .withValues(alpha: 0.7),
+                          fontSize: 13.sp),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.7),
+                        size: 5.w,
+                      )),
+                  onSubmitted: (value) => _performSearch(value)))
+              : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'भद्रपुर नगरपालिका',
+                  style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.onPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16.sp),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 0.3.h),
+                Text(
+                  'नागरिक सेवाहरू',
+                  style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w400,
+                      fontSize: 10.sp),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          actions: [
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 1.w),
+              decoration: BoxDecoration(
+                color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isSearching = !_isSearching;
+                    if (!_isSearching) _searchController.clear();
+                  });
+                },
+                icon: CustomIconWidget(
+                    iconName: _isSearching ? 'close' : 'search',
+                    color: AppTheme.lightTheme.colorScheme.onPrimary,
+                    size: 5.5.w),
+                padding: EdgeInsets.all(2.w),
+                constraints: BoxConstraints(minWidth: 10.w, minHeight: 6.h),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(right: 2.w),
+              decoration: BoxDecoration(
+                color: AppTheme.lightTheme.colorScheme.onPrimary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+                  IconButton(
+                      onPressed: () => _showNotifications(),
+                      icon: CustomIconWidget(
+                          iconName: 'notifications',
+                          color: AppTheme.lightTheme.colorScheme.onPrimary,
+                          size: 5.5.w),
+                      padding: EdgeInsets.all(2.w),
+                      constraints: BoxConstraints(minWidth: 10.w, minHeight: 6.h)),
+                  _notificationCount > 0
+                      ? Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                          padding: EdgeInsets.all(0.3.w),
+                          decoration: BoxDecoration(
+                              color: AppTheme.lightTheme.colorScheme.error,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: AppTheme.lightTheme.colorScheme.onPrimary,
+                                width: 1.5,
+                              )),
+                          constraints: BoxConstraints(minWidth: 5.w, minHeight: 5.w),
+                          child: Text(
+                            _notificationCount > 9 ? '9+' : '$_notificationCount',
+                            style: TextStyle(
+                                color: AppTheme.lightTheme.colorScheme.onError,
+                                fontSize: 7.sp,
+                                fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          )))
+                      : const SizedBox.shrink(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -230,19 +397,313 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     return RefreshIndicator(
       onRefresh: _refreshData,
       color: AppTheme.lightTheme.colorScheme.primary,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(4.w),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight - kBottomNavigationBarHeight - kToolbarHeight,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_showWelcomeBox) ...[
+                    _buildZeroOverflowWelcomeSection(),
+                    SizedBox(height: 3.h),
+                  ],
+                  _buildZeroOverflowComplaintCategoriesSection(),
+                  SizedBox(height: 3.h),
+                  _buildZeroOverflowSuchanaBoardSection(),
+                  SizedBox(height: 2.h), // Reduced bottom spacing
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ------------------- Zero Overflow Tab Builders -------------------
+  Widget _buildZeroOverflowHomeTab(double availableHeight, double availableWidth) {
+    return Container(
+      height: availableHeight,
+      width: availableWidth,
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.all(4.w),
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildWelcomeSection(),
+            if (_showWelcomeBox) ...[
+              _buildZeroOverflowWelcomeSection(),
+              SizedBox(height: 3.h),
+            ],
+            _buildZeroOverflowComplaintCategoriesSection(),
             SizedBox(height: 3.h),
-            _buildComplaintCategoriesSection(),
-            SizedBox(height: 3.h),
-            _buildSuchanaBoardSection(),
+            _buildZeroOverflowSuchanaBoardSection(),
+            SizedBox(height: 8.h), // Extra space for FAB
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildZeroOverflowComplaintsTab(double availableHeight, double availableWidth) {
+    return Container(
+      height: availableHeight,
+      width: availableWidth,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('मेरा गुनासोहरू',
+                style: AppTheme.lightTheme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+            SizedBox(height: 3.h),
+            _buildZeroOverflowComplaintGrid(availableWidth),
+            SizedBox(height: 8.h), // Extra space
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildZeroOverflowComplaintGrid(double availableWidth) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // Force 2 columns for all 4 categories
+        crossAxisSpacing: 3.w,
+        mainAxisSpacing: 2.h,
+        childAspectRatio: 1.3, // Better aspect ratio
+      ),
+      itemCount: _complaintCategories.length,
+      itemBuilder: (context, index) {
+        final category = _complaintCategories[index];
+        return ComplaintCategoryCard(
+          title: category['title'] as String,
+          iconName: category['icon'] as String,
+          count: category['count'] as int,
+          backgroundColor: category['color'] as Color,
+          onTap: () => _navigateToCategory(category['route'] as String),
+        );
+      },
+    );
+  }
+
+  Widget _buildZeroOverflowProfileTab(double availableHeight, double availableWidth) {
+    return Container(
+      height: availableHeight,
+      width: availableWidth,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('प्रोफाइल',
+                style: AppTheme.lightTheme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+            SizedBox(height: 3.h),
+            _buildZeroOverflowAvatarSection(),
+            SizedBox(height: 3.h),
+            _buildZeroOverflowProfileInfoCard(),
+            SizedBox(height: 8.h), // Extra space
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildZeroOverflowAvatarSection() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 8.w,
+                backgroundColor: AppTheme.lightTheme.colorScheme.primary
+                    .withValues(alpha: 0.1),
+                child: _userProfile['avatar'] != null
+                    ? ClipOval(
+                    child: CustomImageWidget(
+                        imageUrl: _userProfile['avatar'] as String,
+                        width: 16.w,
+                        height: 16.w,
+                        fit: BoxFit.cover))
+                    : CustomIconWidget(
+                    iconName: 'person',
+                    color: AppTheme.lightTheme.colorScheme.primary,
+                    size: 8.w),
+              ),
+              if (_userProfile['isGoogleUser'] ?? false)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: EdgeInsets.all(0.5.w),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppTheme.lightTheme.colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
+                    child: CustomIconWidget(
+                      iconName: 'verified',
+                      color: AppTheme.lightTheme.colorScheme.primary,
+                      size: 3.w,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 1.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  _userProfile['name'] as String,
+                  style: AppTheme.lightTheme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (_userProfile['isGoogleUser'] ?? false) ...[
+                SizedBox(width: 0.5.w),
+                CustomIconWidget(
+                  iconName: 'verified',
+                  color: AppTheme.lightTheme.colorScheme.primary,
+                  size: 3.w,
+                ),
+              ],
+            ],
+          ),
+          SizedBox(height: 0.5.h),
+          Text(
+            _userProfile['email'] as String,
+            style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                color: AppTheme.lightTheme.colorScheme.onSurfaceVariant),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (_userProfile['isGoogleUser'] ?? false) ...[
+            SizedBox(height: 1.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+              decoration: BoxDecoration(
+                color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(
+                  color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomIconWidget(
+                    iconName: 'google',
+                    color: AppTheme.lightTheme.colorScheme.primary,
+                    size: 3.w,
+                  ),
+                  SizedBox(width: 0.5.w),
+                  Text(
+                    'Google खाता',
+                    style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZeroOverflowProfileInfoCard() {
+    final bool isGoogleUser = _userProfile['isGoogleUser'] ?? false;
+
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(3.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'व्यक्तिगत जानकारी',
+              style: AppTheme.lightTheme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 1.h),
+            if (isGoogleUser) ...[
+              _buildZeroOverflowInfoRow('पूर्ण नाम', _userProfile['name'] as String, 'person'),
+              _buildZeroOverflowInfoRow('पहिलो नाम', _userProfile['firstName'] as String, 'person_outline'),
+              _buildZeroOverflowInfoRow('थर', _userProfile['lastName'] as String, 'person_outline'),
+              _buildZeroOverflowInfoRow('Google ID', _userProfile['googleId'] as String, 'verified_user'),
+            ],
+            _buildZeroOverflowInfoRow('फोन नम्बर', _userProfile['phone'] as String, 'phone'),
+            _buildZeroOverflowInfoRow('वार्ड नम्बर', 'वार्ड ${_userProfile['ward']}', 'location_city'),
+            _buildZeroOverflowInfoRow('ठेगाना', _userProfile['address'] as String, 'home'),
+            _buildZeroOverflowInfoRow('सदस्यता मिति', _formatDate(_userProfile['joinDate'] as DateTime), 'calendar_today'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildZeroOverflowInfoRow(String label, String value, String iconName) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 0.5.h),
+      child: Row(
+        children: [
+          CustomIconWidget(
+              iconName: iconName,
+              color: AppTheme.lightTheme.colorScheme.primary,
+              size: 4.w),
+          SizedBox(width: 2.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label,
+                    style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
+                        color: AppTheme.lightTheme.colorScheme.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                Text(value,
+                    style: AppTheme.lightTheme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -271,11 +732,12 @@ class _CitizenDashboardState extends State<CitizenDashboard>
             itemBuilder: (context, index) {
               final category = _complaintCategories[index];
               return ComplaintCategoryCard(
-                  title: category['title'] as String,
-                  iconName: category['icon'] as String,
-                  count: category['count'] as int,
-                  backgroundColor: category['color'] as Color,
-                  onTap: () => _navigateToCategory(category['route'] as String));
+                title: category['title'] as String,
+                iconName: category['icon'] as String,
+                count: category['count'] as int,
+                backgroundColor: category['color'] as Color,
+                onTap: () => _navigateToCategory(category['route'] as String),
+              );
             },
           ),
         ],
@@ -285,197 +747,397 @@ class _CitizenDashboardState extends State<CitizenDashboard>
 
   // ------------------- Profile Tab -------------------
   Widget _buildProfileTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(4.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('प्रोफाइल',
-              style: AppTheme.lightTheme.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          SizedBox(height: 3.h),
-          Center(
+    final bool isGoogleUser = _userProfile['isGoogleUser'] ?? false;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(4.w),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: constraints.maxHeight - kBottomNavigationBarHeight - kToolbarHeight,
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 12.w,
-                  backgroundColor: AppTheme.lightTheme.colorScheme.primary
-                      .withValues(alpha: 0.1),
-                  child: _userProfile['avatar'] != null
-                      ? ClipOval(
-                      child: CustomImageWidget(
-                          imageUrl: _userProfile['avatar'] as String,
-                          width: 24.w,
-                          height: 24.w,
-                          fit: BoxFit.cover))
-                      : CustomIconWidget(
-                      iconName: 'person',
-                      color: AppTheme.lightTheme.colorScheme.primary,
-                      size: 12.w),
-                ),
-                SizedBox(height: 2.h),
-                Text(_userProfile['name'] as String,
+                Text('प्रोफाइल',
                     style: AppTheme.lightTheme.textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.w600)),
-                Text(_userProfile['email'] as String,
-                    style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                        color:
-                        AppTheme.lightTheme.colorScheme.onSurfaceVariant)),
+                SizedBox(height: 3.h),
+                Center(
+                  child: Column(
+                    children: [
+                      Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 10.w, // Reduced size to prevent overflow
+                            backgroundColor: AppTheme.lightTheme.colorScheme.primary
+                                .withValues(alpha: 0.1),
+                            child: _userProfile['avatar'] != null
+                                ? ClipOval(
+                                child: CustomImageWidget(
+                                    imageUrl: _userProfile['avatar'] as String,
+                                    width: 20.w,
+                                    height: 20.w,
+                                    fit: BoxFit.cover))
+                                : CustomIconWidget(
+                                iconName: 'person',
+                                color: AppTheme.lightTheme.colorScheme.primary,
+                                size: 10.w),
+                          ),
+                          if (isGoogleUser)
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(0.8.w),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppTheme.lightTheme.colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: CustomIconWidget(
+                                  iconName: 'verified',
+                                  color: AppTheme.lightTheme.colorScheme.primary,
+                                  size: 3.w,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: 1.5.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _userProfile['name'] as String,
+                              style: AppTheme.lightTheme.textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isGoogleUser) ...[
+                            SizedBox(width: 1.w),
+                            CustomIconWidget(
+                              iconName: 'verified',
+                              color: AppTheme.lightTheme.colorScheme.primary,
+                              size: 4.w,
+                            ),
+                          ],
+                        ],
+                      ),
+                      SizedBox(height: 0.5.h),
+                      Text(
+                        _userProfile['email'] as String,
+                        style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                            color: AppTheme.lightTheme.colorScheme.onSurfaceVariant),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (isGoogleUser) ...[
+                        SizedBox(height: 1.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.8.h),
+                          decoration: BoxDecoration(
+                            color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomIconWidget(
+                                iconName: 'google',
+                                color: AppTheme.lightTheme.colorScheme.primary,
+                                size: 3.w,
+                              ),
+                              SizedBox(width: 1.w),
+                              Text(
+                                'Google खाता',
+                                style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
+                                  color: AppTheme.lightTheme.colorScheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                SizedBox(height: 3.h),
+                _buildProfileInfoCard(),
+                SizedBox(height: 2.h), // Add bottom spacing
               ],
             ),
           ),
-          SizedBox(height: 4.h),
-          _buildProfileInfoCard(),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  // ------------------- Helper Widgets -------------------
-  Widget _buildWelcomeSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.1),
-            AppTheme.lightTheme.colorScheme.secondary.withValues(alpha: 0.1),
-          ],
+  // ------------------- Zero Overflow Helper Widgets -------------------
+  Widget _buildZeroOverflowWelcomeSection() {
+    final String firstName = _userProfile['firstName'] ?? _userProfile['name']?.split(' ')[0] ?? 'नागरिक';
+    final bool isGoogleUser = _userProfile['isGoogleUser'] ?? false;
+
+    return AnimatedOpacity(
+      opacity: _showWelcomeBox ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 500),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(3.w),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.1),
+              AppTheme.lightTheme.colorScheme.secondary.withValues(alpha: 0.1),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.2),
+              width: 1),
         ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.2),
-            width: 1),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('स्वागत छ, ${_userProfile['name']?.split(' ')[0] ?? 'नागरिक'}!',
-            style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppTheme.lightTheme.colorScheme.primary)),
-        SizedBox(height: 1.h),
-        Text(
-            'तपाईंको गुनासो र सुझावहरू हाम्रो लागि महत्वपूर्ण छ। सेवामा सुधार ल्याउन हामी प्रतिबद्ध छौं।',
-            style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                height: 1.4,
-                color: AppTheme.lightTheme.colorScheme.onSurfaceVariant)),
-        SizedBox(height: 2.h),
-        Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CustomIconWidget(
-                iconName: 'location_on',
-                color: AppTheme.lightTheme.colorScheme.primary,
-                size: 5.w),
-            SizedBox(width: 2.w),
-            Text('वार्ड नम्बर ${_userProfile['ward']}',
-                style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.lightTheme.colorScheme.primary)),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    isGoogleUser
+                        ? 'स्वागत छ, $firstName! 🎉'
+                        : 'स्वागत छ, $firstName!',
+                    style: AppTheme.lightTheme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.lightTheme.colorScheme.primary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (isGoogleUser)
+                  CustomIconWidget(
+                    iconName: 'verified',
+                    color: AppTheme.lightTheme.colorScheme.primary,
+                    size: 4.w,
+                  ),
+              ],
+            ),
+            SizedBox(height: 0.5.h),
+            Text(
+                isGoogleUser
+                    ? 'तपाईंको Google खाता कनेक्ट भयो।'
+                    : 'तपाईंको गुनासो महत्वपूर्ण छ।',
+                style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                    height: 1.2,
+                    color: AppTheme.lightTheme.colorScheme.onSurfaceVariant),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+            SizedBox(height: 0.5.h),
+            Row(
+              children: [
+                CustomIconWidget(
+                    iconName: 'location_on',
+                    color: AppTheme.lightTheme.colorScheme.primary,
+                    size: 3.w),
+                SizedBox(width: 1.w),
+                Expanded(
+                  child: Text(
+                    'वार्ड नम्बर ${_userProfile['ward']}',
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.lightTheme.colorScheme.primary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-      ]),
+      ),
     );
   }
 
-  Widget _buildComplaintCategoriesSection() {
+  Widget _buildZeroOverflowComplaintCategoriesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('गुनासो श्रेणीहरू',
-            style: AppTheme.lightTheme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          'गुनासो श्रेणीहरू',
+          style: AppTheme.lightTheme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         SizedBox(height: 2.h),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 3.w,
-              mainAxisSpacing: 2.h,
-              childAspectRatio: 1.8),
+            crossAxisCount: 2, // Force 2 columns for 4 items
+            crossAxisSpacing: 3.w,
+            mainAxisSpacing: 2.h,
+            childAspectRatio: 1.2, // Compact ratio for better fit
+          ),
           itemCount: _complaintCategories.length,
           itemBuilder: (context, index) {
             final category = _complaintCategories[index];
             return ComplaintCategoryCard(
-                title: category['title'] as String,
-                iconName: category['icon'] as String,
-                count: category['count'] as int,
-                backgroundColor: category['color'] as Color,
-                onTap: () =>
-                    _navigateToCategory(category['route'] as String));
+              title: category['title'] as String,
+              iconName: category['icon'] as String,
+              count: category['count'] as int,
+              backgroundColor: category['color'] as Color,
+              onTap: () => _navigateToCategory(category['route'] as String),
+            );
           },
         ),
       ],
     );
   }
 
-  Widget _buildSuchanaBoardSection() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [
-        Text('सूचना बोर्ड',
-            style: AppTheme.lightTheme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600)),
-        const Spacer(),
-        TextButton(
-            onPressed: () => print('View all notices'),
-            child: Text('सबै हेर्नुहोस्',
+  Widget _buildZeroOverflowSuchanaBoardSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'सूचना बोर्ड',
+                style: AppTheme.lightTheme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            TextButton(
+              onPressed: () => print('View all notices'),
+              child: Text(
+                'सबै हेर्नुहोस्',
                 style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.primary,
-                    fontWeight: FontWeight.w500))),
-      ]),
-      SizedBox(height: 1.h),
-      SizedBox(
-          height: 25.h,
+                  color: AppTheme.lightTheme.colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 2.h),
+        SizedBox(
+          height: 18.h, // Fixed height for horizontal list
           child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _suchanaBoard.length,
-              itemBuilder: (context, index) {
-                return SuchanaBoardCard(notice: _suchanaBoard[index]);
-              })),
-    ]);
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.only(right: 4.w),
+            itemCount: _suchanaBoard.length,
+            itemBuilder: (context, index) {
+              return Container(
+                width: 65.w, // Fixed width for each card
+                margin: EdgeInsets.only(right: 3.w),
+                child: SuchanaBoardCard(notice: _suchanaBoard[index]),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildProfileInfoCard() {
+    final bool isGoogleUser = _userProfile['isGoogleUser'] ?? false;
+    final infoItems = isGoogleUser ? 8 : 4; // Number of info rows
+    final titleHeight = 4.h;
+    final itemHeight = 3.h; // Height per info row
+    final totalHeight = titleHeight + (infoItems * itemHeight) + 2.h; // Title + items + spacing
+
     return Card(
-      child: Padding(
-        padding: EdgeInsets.all(4.w),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('व्यक्तिगत जानकारी',
-              style: AppTheme.lightTheme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          SizedBox(height: 2.h),
-          _buildInfoRow('फोन नम्बर', _userProfile['phone'] as String, 'phone'),
-          _buildInfoRow(
-              'वार्ड नम्बर', 'वार्ड ${_userProfile['ward']}', 'location_city'),
-          _buildInfoRow('ठेगाना', _userProfile['address'] as String, 'home'),
-          _buildInfoRow('सदस्यता मिति',
-              _formatDate(_userProfile['joinDate'] as DateTime), 'calendar_today'),
-        ]),
+      child: SizedBox(
+        height: totalHeight,
+        child: Padding(
+          padding: EdgeInsets.all(2.w),
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: titleHeight,
+                  child: Text(
+                    'व्यक्तिगत जानकारी',
+                    style: AppTheme.lightTheme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(height: 1.h),
+                if (isGoogleUser) ...[
+                  _buildInfoRow('पूर्ण नाम', _userProfile['name'] as String, 'person'),
+                  _buildInfoRow('पहिलो नाम', _userProfile['firstName'] as String, 'person_outline'),
+                  _buildInfoRow('थर', _userProfile['lastName'] as String, 'person_outline'),
+                  _buildInfoRow('Google ID', _userProfile['googleId'] as String, 'verified_user'),
+                ],
+                _buildInfoRow('फोन नम्बर', _userProfile['phone'] as String, 'phone'),
+                _buildInfoRow('वार्ड नम्बर', 'वार्ड ${_userProfile['ward']}', 'location_city'),
+                _buildInfoRow('ठेगाना', _userProfile['address'] as String, 'home'),
+                _buildInfoRow('सदस्यता मिति', _formatDate(_userProfile['joinDate'] as DateTime), 'calendar_today'),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildInfoRow(String label, String value, String iconName) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 2.h),
+    return SizedBox(
+      height: 3.h, // Fixed height for each row
       child: Row(
         children: [
-          CustomIconWidget(
-              iconName: iconName,
-              color: AppTheme.lightTheme.colorScheme.primary,
-              size: 6.w),
-          SizedBox(width: 4.w),
+          SizedBox(
+            width: 6.w,
+            child: CustomIconWidget(
+                iconName: iconName,
+                color: AppTheme.lightTheme.colorScheme.primary,
+                size: 4.w),
+          ),
+          SizedBox(width: 2.w),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label,
-                  style: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
-                      color: AppTheme.lightTheme.colorScheme.onSurfaceVariant)),
-              Text(value,
-                  style: AppTheme.lightTheme.textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w500)),
-            ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label,
+                    style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
+                        color: AppTheme.lightTheme.colorScheme.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                Text(value,
+                    style: AppTheme.lightTheme.textTheme.bodySmall
+                        ?.copyWith(fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ],
+            ),
           ),
         ],
       ),
@@ -484,6 +1146,9 @@ class _CitizenDashboardState extends State<CitizenDashboard>
 
   Widget _buildBottomTabBar() {
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: 12.h, // Limit height to prevent overflow
+      ),
       decoration: BoxDecoration(
         color: AppTheme.lightTheme.colorScheme.surface,
         boxShadow: [
@@ -499,22 +1164,27 @@ class _CitizenDashboardState extends State<CitizenDashboard>
         unselectedLabelColor:
         AppTheme.lightTheme.colorScheme.onSurface.withValues(alpha: 0.6),
         indicator: const BoxDecoration(),
+        padding: EdgeInsets.symmetric(vertical: 1.h),
         tabs: const [
-          Tab(icon: Icon(Icons.home)),
-          Tab(icon: Icon(Icons.assignment)),
-          Tab(icon: Icon(Icons.person)),
+          Tab(icon: Icon(Icons.home, size: 24)),
+          Tab(icon: Icon(Icons.assignment, size: 24)),
+          Tab(icon: Icon(Icons.person, size: 24)),
         ],
       ),
     );
   }
 
   Widget _buildFloatingActionButton(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => GunasoForm()));
-      },
-      child: const Icon(Icons.add),
+    return SizedBox(
+      width: 14.w, // Constrain FAB size
+      height: 14.w,
+      child: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => GunasoForm()));
+        },
+        child: Icon(Icons.add, size: 6.w), // Smaller icon
+      ),
     );
   }
 

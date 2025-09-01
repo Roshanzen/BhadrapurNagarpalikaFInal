@@ -1,6 +1,6 @@
 <!-- android/app/src/main/AndroidManifest.xml -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.bhadrapur_nagarpalika">
+    package="com.example.bhadrapurnagarpalika">
 
     <application
         android:label="Bhadrapur Nagarpalika"
