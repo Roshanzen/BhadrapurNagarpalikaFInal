@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
+import '../../core/language_manager.dart';
 import './widgets/analytics_widget.dart';
 import './widgets/notice_card_widget.dart';
 import './widgets/notice_form_widget.dart';
@@ -21,6 +22,7 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  String _selectedLanguage = 'ne'; // Default to Nepali
 
   // Mock notices data
   List<Map<String, dynamic>> _allNotices = [
@@ -147,8 +149,8 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(noticeData['status'] == 'published'
-            ? 'सूचना प्रकाशित गरियो'
-            : 'सूचना ड्राफ्टमा सेभ गरियो'),
+            ? LanguageManager.getString('notice_published', _selectedLanguage)
+            : LanguageManager.getString('notice_saved_draft', _selectedLanguage)),
         backgroundColor: AppTheme.successLight));
   }
 
@@ -161,7 +163,7 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('सूचना अपडेट गरियो'),
+        content: Text(LanguageManager.getString('notice_updated', _selectedLanguage)),
         backgroundColor: AppTheme.successLight));
   }
 
@@ -169,9 +171,9 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-            title: const Text('सूचना मेटाउने'),
+            title: Text(LanguageManager.getString('delete_notice_confirm', _selectedLanguage)),
             content:
-            const Text('के तपाईं यो सूचना मेटाउन निश्चित हुनुहुन्छ?'),
+            Text(LanguageManager.getString('delete_notice_confirm', _selectedLanguage)),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -184,12 +186,12 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
                     });
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: const Text('सूचना मेटाइयो'),
+                        content: Text(LanguageManager.getString('notice_deleted', _selectedLanguage)),
                         backgroundColor: AppTheme.errorLight));
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.errorLight),
-                  child: const Text('मेटाउनुहोस्')),
+                  child: Text(LanguageManager.getString('delete', _selectedLanguage))),
             ]));
   }
 
@@ -211,8 +213,8 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
             SizedBox(height: 2.h),
             Text(
                 _searchQuery.isNotEmpty
-                    ? 'खोजेको सूचना फेला परेन'
-                    : 'कुनै सूचना छैन',
+                    ? LanguageManager.getString('no_search_results', _selectedLanguage)
+                    : LanguageManager.getString('no_notices', _selectedLanguage),
                 style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                     color: AppTheme.lightTheme.colorScheme.onSurfaceVariant)),
           ]));
@@ -247,7 +249,7 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
                 onChanged: _onSearchChanged,
                 autofocus: true,
                 decoration: InputDecoration(
-                    hintText: 'सूचना खोज्नुहोस्...',
+                    hintText: LanguageManager.getString('search_notices', _selectedLanguage),
                     border: InputBorder.none,
                     hintStyle: AppTheme.lightTheme.textTheme.bodyMedium
                         ?.copyWith(
@@ -255,10 +257,16 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
                             .withValues(alpha: 0.7))),
                 style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                     color: AppTheme.lightTheme.colorScheme.onPrimary))
-                : const Text('सूचना बोर्ड व्यवस्थापन'),
+                : Text(LanguageManager.getString('notice_board_management', _selectedLanguage)),
             backgroundColor: AppTheme.lightTheme.colorScheme.primary,
             foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
             elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.of(context).pushReplacementNamed('/officer-dashboard');
+              },
+            ),
             actions: [
               IconButton(
                   icon: CustomIconWidget(
@@ -274,10 +282,10 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
                 unselectedLabelColor: AppTheme.lightTheme.colorScheme.onPrimary
                     .withValues(alpha: 0.7),
                 indicatorColor: AppTheme.lightTheme.colorScheme.onPrimary,
-                tabs: const [
-                  Tab(text: 'सबै'),
-                  Tab(text: 'प्रकाशित'),
-                  Tab(text: 'ड्राफ्ट'),
+                tabs: [
+                  Tab(text: LanguageManager.getString('all_notices', _selectedLanguage)),
+                  Tab(text: LanguageManager.getString('published', _selectedLanguage)),
+                  Tab(text: LanguageManager.getString('draft', _selectedLanguage)),
                 ])),
         body: _isLoading
             ? Center(
@@ -296,7 +304,7 @@ class _NoticeBoardManagementState extends State<NoticeBoardManagement>
                 iconName: 'add',
                 color: AppTheme.lightTheme.colorScheme.onPrimary,
                 size: 24),
-            label: const Text('नयाँ सूचना')));
+            label: Text(LanguageManager.getString('add_notice', _selectedLanguage))));
   }
 }
 

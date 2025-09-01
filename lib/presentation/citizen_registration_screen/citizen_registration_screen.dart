@@ -1,5 +1,4 @@
 // lib/presentation/citizen_registration_screen/citizen_registration_screen.dart
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +6,6 @@ import 'package:sizer/sizer.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../core/app_export.dart';
 import './widgets/privacy_notice_modal.dart';
@@ -53,33 +51,19 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
     setState(() => _isGoogleLoading = true);
 
     try {
-      // Trigger Google sign-in
-      final GoogleSignInAccount? account = await GoogleSignInService.signIn();
-      if (account == null) {
+      // Trigger Google sign-in using the simplified API
+      final user = await GoogleSignInService.signInWithGoogle();
+      if (user == null) {
         _showErrorSnackBar('Google sign-in cancelled.');
         return;
       }
 
-      // Get Google Authentication details (ID Token, Access Token)
-      final auth = await GoogleSignInService.getAuth(account);
-
-      // Firebase authentication using the Google account
-      final user = await GoogleSignInService.firebaseSignInWithGoogle(account);
-      if (user == null) {
-        _showErrorSnackBar('Firebase authentication failed.');
-        return;
-      }
-
-      // Save Google and Firebase tokens in SharedPreferences
+      // Save user information in SharedPreferences
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('googleId', account.id);
-      await prefs.setString('googleName', account.displayName ?? '');
-      await prefs.setString('googleEmail', account.email);
-      await prefs.setString('googlePhoto', account.photoUrl ?? '');
-
-      // Save Google Access Token and ID Token
-      await prefs.setString('googleIdToken', auth?['idToken'] ?? '');
-      await prefs.setString('googleAccessToken', auth?['accessToken'] ?? '');
+      await prefs.setString('googleId', user.uid);
+      await prefs.setString('googleName', user.displayName ?? '');
+      await prefs.setString('googleEmail', user.email ?? '');
+      await prefs.setString('googlePhoto', user.photoURL ?? '');
 
       // Store Firebase refreshToken (if necessary)
       await prefs.setString('firebaseRefreshToken', user.refreshToken ?? '');
@@ -127,7 +111,7 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
     setState(() => _isAppleLoading = true);
     try {
       await Future.delayed(const Duration(seconds: 2));
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      if (!kIsWeb) {
         HapticFeedback.lightImpact();
       }
       _showWardSelectionModal();

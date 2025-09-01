@@ -6,8 +6,8 @@ class AppTheme {
   AppTheme._();
 
   // Nepali Heritage Modern Color Palette
-  static const Color primaryLight = Color(0xFF158F90); //
-  static const Color primaryVariantLight = Color(0xFF5BAE89); //
+  static const Color primaryLight = Color(0xFF158F90); //Teal green
+  static const Color primaryVariantLight = Color(0xFF5BAE89); //Teal Accent
   static const Color secondaryLight = Color(0xFF0B4CB0); // Royal blue
   static const Color secondaryVariantLight = Color(0xFF002A6B); // Darker blue
   static const Color backgroundLight = Color(0xFFFAFAFA); // Warm off-white

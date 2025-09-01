@@ -11,6 +11,32 @@
   <meta name="google-signin-client_id" content="902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDwQiAQhUg8IA9BfcKh1N_ejgIxC1yB73o",
+      authDomain: "bhadrapur-nagarpalika-bc1fb.firebaseapp.com",
+      projectId: "bhadrapur-nagarpalika-bc1fb",
+      storageBucket: "bhadrapur-nagarpalika-bc1fb.firebasestorage.app",
+      messagingSenderId: "902022025384",
+      appId: "1:902022025384:web:cf2f94aa2312df7197f29d",
+      measurementId: "G-MEASUREMENT_ID"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const analytics = getAnalytics(app);
+
+    // Make Firebase available globally for Flutter
+    window.firebase = { app, auth, analytics };
+  </script>
+
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -35,48 +61,6 @@
 
 <div id="sign-in-div"></div>
 
-<!-- Firebase Initialization Script -->
-<script>
-  // Firebase Configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDwQiAQhUg8IA9BfcKh1N_ejgIxC1yB73o",
-    authDomain: "bhadrapur-nagarpalika-bc1fb.firebaseapp.com",
-    projectId: "bhadrapur-nagarpalika-bc1fb",
-    storageBucket: "bhadrapur-nagarpalika-bc1fb.appspot.com",
-    messagingSenderId: "902022025384",
-    appId: "1:902022025384:web:cf2f94aa2312df7197f29d",
-    measurementId: "G-MEASUREMENT_ID" // Add the correct measurement ID if you use analytics
-  };
-
-  // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const analytics = firebase.analytics(app);
-
-  // Google Sign-In initialization
-  window.onload = function() {
-    google.accounts.id.initialize({
-      client_id: "902022025384-5cs1cclq5qib2hfvjf84vhpucdamoopv.apps.googleusercontent.com",
-      callback: function(response) {
-        console.log("ID Token:", response.credential);
-        // Send the ID token to Firebase for authentication
-        const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
-        auth.signInWithCredential(credential).then((result) => {
-          console.log("User signed in successfully:", result.user);
-        }).catch((error) => {
-          console.error("Error signing in:", error);
-        });
-      }
-    });
-
-    google.accounts.id.renderButton(
-      document.getElementById("sign-in-div"),
-      { theme: "outline", size: "large" }  // Customize button appearance
-    );
-
-    google.accounts.id.prompt(); // Optional: shows automatic one-tap prompt
-  };
-</script>
 
 <!-- Flutter bootstrap -->
 <script src="flutter_bootstrap.js" async></script>

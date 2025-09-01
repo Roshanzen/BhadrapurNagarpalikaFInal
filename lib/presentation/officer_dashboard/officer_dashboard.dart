@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import './widgets/complaint_category_card.dart';
+import '../../core/language_manager.dart';
 import './widgets/notification_badge.dart';
-import './widgets/officer_profile_card.dart';
-import './widgets/recent_complaint_card.dart';
+import './incoming_complaints_page.dart';
+import './all_complaints_page.dart';
+import './resolved_complaints_page.dart';
+import './suchana_page.dart';
+import './profile_page.dart';
+import './officer_complaint_form.dart';
 
 class OfficerDashboard extends StatefulWidget {
   const OfficerDashboard({super.key});
@@ -14,375 +18,171 @@ class OfficerDashboard extends StatefulWidget {
   State<OfficerDashboard> createState() => _OfficerDashboardState();
 }
 
-class _OfficerDashboardState extends State<OfficerDashboard>
-    with TickerProviderStateMixin {
-  late TabController _tabController;
-  bool _isRefreshing = false;
+class _OfficerDashboardState extends State<OfficerDashboard> {
   int _notificationCount = 5;
+  String _selectedLanguage = 'ne'; // Default to Nepali
 
-  // Mock officer data
-  final Map<String, dynamic> officerData = {
-    "id": 1,
-    "name": "राम बहादुर श्रेष्ठ",
-    "designation": "सहायक प्रशासकीय अधिकृत",
-    "profileImage":
-    "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-    "department": "सामान्य प्रशासन",
-    "phone": "+977-9841234567",
-    "email": "ram.shrestha@bhadrapur.gov.np"
-  };
-
-  // Mock complaint categories data
-  final List<Map<String, dynamic>> complaintCategories = [
+  // Complaint categories with compact design
+  List<Map<String, dynamic>> get complaintCategories => [
     {
-      "id": 1,
-      "title": "आएको गुनासो",
-      "subtitle": "नयाँ प्राप्त गुनासोहरू",
+      "title": LanguageManager.getString('incoming_complaints', _selectedLanguage),
       "icon": "inbox",
       "count": 12,
-      "color": "primary",
-      "route": "/incoming-complaints"
+      "color": AppTheme.lightTheme.colorScheme.primary,
     },
     {
-      "id": 2,
-      "title": "सम्पूर्ण गुनासो",
-      "subtitle": "सबै गुनासोहरूको सूची",
+      "title": LanguageManager.getString('all_complaints', _selectedLanguage),
       "icon": "list_alt",
       "count": 45,
-      "color": "secondary",
-      "route": "/all-complaints"
+      "color": AppTheme.lightTheme.colorScheme.secondary,
     },
     {
-      "id": 3,
-      "title": "समाधान गरेको गुनासो",
-      "subtitle": "समाधान भएका गुनासोहरू",
+      "title": LanguageManager.getString('resolved_complaints', _selectedLanguage),
       "icon": "check_circle",
       "count": 28,
-      "color": "success",
-      "route": "/resolved-complaints"
+      "color": AppTheme.lightTheme.colorScheme.tertiary,
     }
   ];
 
-  // Mock recent complaints data
-  final List<Map<String, dynamic>> recentComplaints = [
-    {
-      "id": "C001",
-      "title": "सडक बत्ती बिग्रिएको",
-      "citizenName": "श्याम कुमार राई",
-      "submissionDate": "२०८१/०५/०७",
-      "priority": "उच्च",
-      "status": "बाँकी",
-      "ward": 5,
-      "category": "पूर्वाधार"
-    },
-    {
-      "id": "C002",
-      "title": "पानीको ट्याङ्की सफाई",
-      "citizenName": "गीता देवी पौडेल",
-      "submissionDate": "२०८१/०५/०६",
-      "priority": "मध्यम",
-      "status": "प्रगतिमा",
-      "ward": 3,
-      "category": "सफाई"
-    },
-    {
-      "id": "C003",
-      "title": "कुकुर नियन्त्रण",
-      "citizenName": "हरि प्रसाद अधिकारी",
-      "submissionDate": "२०८१/०५/०५",
-      "priority": "न्यून",
-      "status": "सम्पन्न",
-      "ward": 8,
-      "category": "स्वास्थ्य"
-    },
-    {
-      "id": "C004",
-      "title": "फोहोर संकलन समस्या",
-      "citizenName": "सुनिता गुरुङ",
-      "submissionDate": "२०८१/०५/०४",
-      "priority": "उच्च",
-      "status": "बाँकी",
-      "ward": 12,
-      "category": "सफाई"
-    }
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    // ensure FAB visibility updates when tab changes
-    _tabController.addListener(() {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  Color _getCategoryColor(String colorName) {
-    switch (colorName) {
-      case 'primary':
-        return AppTheme.lightTheme.colorScheme.primary;
-      case 'secondary':
-        return AppTheme.lightTheme.colorScheme.secondary;
-      case 'success':
-        return AppTheme.lightTheme.colorScheme.tertiary;
-      default:
-        return AppTheme.lightTheme.colorScheme.primary;
+  void _navigateToComplaintCategory(int index) {
+    switch (index) {
+      case 0:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const IncomingComplaintsPage()),
+        );
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AllComplaintsPage()),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ResolvedComplaintsPage()),
+        );
+        break;
     }
   }
 
-  Future<void> _refreshData() async {
-    setState(() {
-      _isRefreshing = true;
-    });
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ProfilePage()),
+    );
+  }
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      _isRefreshing = false;
-      _notificationCount = 3; // Update notification count after refresh
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('डाटा अपडेट भयो'),
-          backgroundColor: AppTheme.lightTheme.colorScheme.tertiary,
+  Widget _buildNoticeCard({
+    required String imageUrl,
+    required String title,
+    required String date,
+    required String excerpt,
+  }) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SuchanaPage()),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 65.w,
+        constraints: BoxConstraints(
+          maxWidth: 300,
+          minWidth: 250,
         ),
-      );
-    }
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('लगआउट'),
-          content: const Text('के तपाईं लगआउट गर्न चाहनुहुन्छ?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('रद्द गर्नुहोस्'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.pushReplacementNamed(
-                    context, '/role-selection-screen');
-              },
-              child: const Text('लगआउट'),
+        decoration: BoxDecoration(
+          color: AppTheme.lightTheme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadowLight,
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void _showComplaintActions(Map<String, dynamic> complaint) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(4.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 12.w,
-                height: 0.5.h,
-                decoration: BoxDecoration(
-                  color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                'गुनासो #${complaint["id"]}',
-                style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 2.h),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'visibility',
-                  color: AppTheme.lightTheme.colorScheme.primary,
-                  size: 24,
-                ),
-                title: const Text('विस्तृत हेर्नुहोस्'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Navigate to complaint details
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'edit',
-                  color: AppTheme.lightTheme.colorScheme.secondary,
-                  size: 24,
-                ),
-                title: const Text('स्थिति अपडेट गर्नुहोस्'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Show status update dialog
-                },
-              ),
-              ListTile(
-                leading: CustomIconWidget(
-                  iconName: 'phone',
-                  color: AppTheme.lightTheme.colorScheme.tertiary,
-                  size: 24,
-                ),
-                title: const Text('नागरिकलाई सम्पर्क गर्नुहोस्'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // Contact citizen
-                },
-              ),
-              SizedBox(height: 2.h),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDashboardTab() {
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      color: AppTheme.lightTheme.colorScheme.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Officer Profile Card
-            OfficerProfileCard(
-              officerName: officerData["name"] as String,
-              designation: officerData["designation"] as String,
-              profileImage: officerData["profileImage"] as String,
-              onLogout: _showLogoutDialog,
-            ),
-
-            SizedBox(height: 2.h),
-
-            // Complaint Categories
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
-              child: Text(
-                'गुनासो श्रेणीहरू',
-                style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.lightTheme.colorScheme.onSurface,
+            // Notice Image
+            Container(
+              height: 16.h,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                image: DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
 
-            SizedBox(height: 1.h),
-
-            ...complaintCategories.map((category) => ComplaintCategoryCard(
-              title: category["title"] as String,
-              subtitle: category["subtitle"] as String,
-              iconName: category["icon"] as String,
-              count: category["count"] as int,
-              backgroundColor:
-              _getCategoryColor(category["color"] as String),
-              onTap: () {
-                // Navigate to specific complaint category
-                Navigator.pushNamed(context, category["route"] as String);
-              },
-            )),
-
-            SizedBox(height: 3.h),
-
-            // Recent Complaints Section
+            // Notice Content
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 4.w),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: EdgeInsets.all(3.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Date Badge
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+                    decoration: BoxDecoration(
+                      color: AppTheme.lightTheme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      date,
+                      style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
+                        color: AppTheme.lightTheme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 1.5.h),
+
+                  // Title
                   Text(
-                    'हालका गुनासोहरू',
-                    style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                    title,
+                    style: AppTheme.lightTheme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppTheme.lightTheme.colorScheme.onSurface,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  TextButton(
-                    onPressed: () {
-                      // Navigate to all complaints
-                      Navigator.pushNamed(context, '/all-complaints');
-                    },
-                    child: const Text('सबै हेर्नुहोस्'),
+
+                  SizedBox(height: 1.h),
+
+                  // Excerpt
+                  Text(
+                    excerpt,
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-
-            SizedBox(height: 1.h),
-
-            SizedBox(
-              height: 25.h,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                itemCount: recentComplaints.length,
-                itemBuilder: (context, index) {
-                  final complaint = recentComplaints[index];
-                  return RecentComplaintCard(
-                    complaintId: complaint["id"] as String,
-                    title: complaint["title"] as String,
-                    citizenName: complaint["citizenName"] as String,
-                    submissionDate: complaint["submissionDate"] as String,
-                    priority: complaint["priority"] as String,
-                    status: complaint["status"] as String,
-                    onTap: () {
-                      // Navigate to complaint details
-                    },
-                    onLongPress: () {
-                      _showComplaintActions(complaint);
-                    },
-                  );
-                },
-              ),
-            ),
-
-            SizedBox(height: 10.h), // Space for FAB
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPlaceholderTab(String title) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CustomIconWidget(
-            iconName: 'construction',
-            color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-            size: 48,
-          ),
-          SizedBox(height: 2.h),
-          Text(
-            '$title निर्माणाधीन छ',
-            style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-              color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
+  void _navigateToOfficerComplaintForm() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const OfficerComplaintForm()),
     );
   }
 
@@ -391,12 +191,11 @@ class _OfficerDashboardState extends State<OfficerDashboard>
     return Scaffold(
       backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('अधिकृत ड्यासबोर्ड'),
+        title: Text(LanguageManager.getString('officer_dashboard', _selectedLanguage)),
         backgroundColor: AppTheme.lightTheme.colorScheme.primary,
         foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
         elevation: 0,
-        automaticallyImplyLeading:
-        false, // 🚫 removes the default back icon & behavior
+        automaticallyImplyLeading: false,
         actions: [
           NotificationBadge(
             count: _notificationCount,
@@ -404,119 +203,225 @@ class _OfficerDashboardState extends State<OfficerDashboard>
               // Navigate to notifications
             },
           ),
+          IconButton(
+            icon: CustomIconWidget(
+              iconName: 'person',
+              color: AppTheme.lightTheme.colorScheme.onPrimary,
+              size: 24,
+            ),
+            onPressed: _navigateToProfile,
+          ),
           SizedBox(width: 2.w),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.lightTheme.colorScheme.onPrimary,
-          unselectedLabelColor: AppTheme.lightTheme.colorScheme.onPrimary
-              .withValues(alpha: 0.7),
-          indicatorColor: AppTheme.lightTheme.colorScheme.onPrimary,
-          labelStyle: AppTheme.lightTheme.textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-          unselectedLabelStyle: AppTheme.lightTheme.textTheme.labelMedium,
-          tabs: const [
-            Tab(text: 'ड्यासबोर्ड'),
-            Tab(text: 'गुनासो'),
-            Tab(text: 'सूचना'),
-            Tab(text: 'प्रोफाइल'),
-          ],
-        ),
       ),
-      body: _isRefreshing
-          ? Center(
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(4.w),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircularProgressIndicator(
-              color: AppTheme.lightTheme.colorScheme.primary,
-            ),
-            SizedBox(height: 2.h),
+            // Complaint Categories - Compact Design
             Text(
-              'डाटा लोड गर्दै...',
-              style:
-              AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
+              LanguageManager.getString('complaints', _selectedLanguage),
+              style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.lightTheme.colorScheme.onSurface,
               ),
             ),
+
+            SizedBox(height: 2.h),
+
+            // 3 Compact Category Icons in a Row - Made Responsive
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(complaintCategories.length, (index) {
+                final category = complaintCategories[index];
+                return Flexible(
+                  flex: 1,
+                  child: InkWell(
+                    onTap: () => _navigateToComplaintCategory(index),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 1.w),
+                      padding: EdgeInsets.all(2.w),
+                      constraints: BoxConstraints(
+                        minWidth: 20.w,
+                        maxWidth: 28.w,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.lightTheme.cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.shadowLight,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(1.5.w),
+                            decoration: BoxDecoration(
+                              color: category["color"].withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: CustomIconWidget(
+                              iconName: category["icon"],
+                              color: category["color"],
+                              size: 20,
+                            ),
+                          ),
+                          SizedBox(height: 0.8.h),
+                          Flexible(
+                            child: Text(
+                              category["title"],
+                              style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.lightTheme.colorScheme.onSurface,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(height: 0.3.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 1.5.w, vertical: 0.3.h),
+                            decoration: BoxDecoration(
+                              color: category["color"],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${category["count"]}',
+                              style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+
+            SizedBox(height: 4.h),
+
+            // Suchana Notice Board Section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    '📋 ${LanguageManager.getString('notice_board', _selectedLanguage)}',
+                    style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.lightTheme.colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SuchanaPage()),
+                    );
+                  },
+                  icon: CustomIconWidget(
+                    iconName: 'add',
+                    color: AppTheme.lightTheme.colorScheme.primary,
+                    size: 24,
+                  ),
+                  tooltip: LanguageManager.getString('add_notice', _selectedLanguage),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 2.h),
+
+            // Notice Board with Photos and Titles
+            Container(
+              height: 32.h,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 2.w),
+                children: [
+                  // Notice 1
+                  _buildNoticeCard(
+                    imageUrl: 'https://images.pexels.com/photos/8761412/pexels-photo-8761412.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
+                    title: 'नगरपालिका सभाको सूचना',
+                    date: '२०८१/०५/०७',
+                    excerpt: 'आगामी २०८१/०५/१५ गते नगरपालिका सभा बस्ने भएकोले...',
+                  ),
+                  SizedBox(width: 3.w),
+
+                  // Notice 2
+                  _buildNoticeCard(
+                    imageUrl: 'https://images.pexels.com/photos/6230579/pexels-photo-6230579.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
+                    title: 'सफाई अभियान कार्यक्रम',
+                    date: '२०८१/०५/०६',
+                    excerpt: 'आगामी शुक्रबार वडा नं. ५ मा सफाई अभियान सञ्चालन...',
+                  ),
+                  SizedBox(width: 3.w),
+
+                  // Notice 3
+                  _buildNoticeCard(
+                    imageUrl: 'https://images.pexels.com/photos/1181396/pexels-photo-1181396.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
+                    title: 'कर संकलन अभियान',
+                    date: '२०८१/०५/१०',
+                    excerpt: 'यो आर्थिक वर्षको कर संकलन अभियान सुरु भएको...',
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 2.h),
+
+            // View All Notices Button
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SuchanaPage()),
+                  );
+                },
+                icon: CustomIconWidget(
+                  iconName: 'visibility',
+                  color: AppTheme.lightTheme.colorScheme.primary,
+                  size: 20,
+                ),
+                label: Text(
+                  LanguageManager.getString('view_all', _selectedLanguage),
+                  style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.lightTheme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 10.h), // Space for FAB
           ],
         ),
-      )
-          : TabBarView(
-        controller: _tabController,
-        children: [
-          _buildDashboardTab(),
-          _buildPlaceholderTab('गुनासो'),
-          _buildPlaceholderTab('सूचना बोर्ड'),
-          _buildPlaceholderTab('प्रोफाइल'),
-        ],
       ),
-      floatingActionButton: _tabController.index == 0
-          ? FloatingActionButton.extended(
-        onPressed: () {
-          // Show complaint response form
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            shape: const RoundedRectangleBorder(
-              borderRadius:
-              BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            builder: (BuildContext context) {
-              return Container(
-                height: 80.h,
-                padding: EdgeInsets.all(4.w),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 12.w,
-                      height: 0.5.h,
-                      decoration: BoxDecoration(
-                        color: AppTheme.lightTheme.colorScheme
-                            .onSurfaceVariant,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      'गुनासो जवाफ फारम',
-                      style: AppTheme
-                          .lightTheme.textTheme.titleMedium
-                          ?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'गुनासो जवाफ फारम निर्माणाधीन छ',
-                          style: AppTheme.lightTheme.textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                            color: AppTheme.lightTheme.colorScheme
-                                .onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _navigateToOfficerComplaintForm,
         backgroundColor: AppTheme.lightTheme.colorScheme.primary,
         foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
         icon: CustomIconWidget(
-          iconName: 'add',
+          iconName: 'edit',
           color: AppTheme.lightTheme.colorScheme.onPrimary,
           size: 24,
         ),
-        label: const Text('जवाफ दिनुहोस्'),
-      )
-          : null,
+        label: Text(LanguageManager.getString('submit_complaint', _selectedLanguage)),
+      ),
     );
   }
 }

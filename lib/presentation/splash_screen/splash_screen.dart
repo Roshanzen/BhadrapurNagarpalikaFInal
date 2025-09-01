@@ -167,126 +167,136 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ),
         ),
         child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo Section
-              Expanded(
-                flex: 3,
-                child: Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo Section
+                Expanded(
+                  flex: 3,
+                  child: Center(
+                    child: AnimatedBuilder(
+                      animation: _logoScaleAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _logoScaleAnimation.value,
+                          child: Container(
+                            width: 50.w,
+                            height: 50.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.1),
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.all(3.w),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                // Welcome Message Section
+                Expanded(
+                  flex: 1,
                   child: AnimatedBuilder(
-                    animation: _logoScaleAnimation,
+                    animation: _textFadeAnimation,
                     builder: (context, child) {
-                      return Transform.scale(
-                        scale: _logoScaleAnimation.value,
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          width: 55.w,
-                          height: 55.w,
-                          fit: BoxFit.contain,
+                      return Opacity(
+                        opacity: _textFadeAnimation.value,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'स्वागत छ',
+                              style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
+                                color: AppTheme.lightTheme.colorScheme.onPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16.sp,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'भद्रपुर नगरपालिका गुनासो पोर्टलमा',
+                              style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
+                                color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.9),
+                                fontSize: 14.sp,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       );
                     },
                   ),
                 ),
-              ),
-              // Welcome Message Section
-              Expanded(
-                flex: 1,
-                child: AnimatedBuilder(
-                  animation: _textFadeAnimation,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _textFadeAnimation.value,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'स्वागत छ',
-                            style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
-                              color: AppTheme.lightTheme.colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18.sp,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 10.h),
-                          Text(
-                            'भद्रपुर नगरपालिका गुनासो पोर्टलमा',
-                            style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
-                              color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.9),
-                              fontSize: 17.sp,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                // Loading Section
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _isLoading
+                          ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppTheme.lightTheme.colorScheme.onPrimary,
+                        ),
+                        strokeWidth: 3.0,
+                      )
+                          : Icon(
+                        Icons.check_circle,
+                        color: AppTheme.lightTheme.colorScheme.onPrimary,
+                        size: 8.w,
                       ),
-                    );
-                  },
-                ),
-              ),
-              // Loading Section
-              Expanded(
-                flex: 1,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _isLoading
-                        ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppTheme.lightTheme.colorScheme.onPrimary,
+                      SizedBox(height: 2.h),
+                      Text(
+                        _loadingStatus,
+                        style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+                          color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.8),
+                          fontSize: 12.sp,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      strokeWidth: 3.0,
-                    )
-                        : const Icon(
-                      Icons.check_circle,
-                      color: Colors.green,
-                    ),
-                    SizedBox(height: 2.h),
-                    Text(
-                      _loadingStatus,
-                      style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.8),
-                        fontSize: 10.sp,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    if (!_hasNetworkConnection && !_isLoading) ...[
-                      SizedBox(height: 1.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.wifi_off,
-                            color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
-                            size: 4.w,
-                          ),
-                          SizedBox(width: 2.w),
-                          Text(
-                            'अफलाइन मोडमा काम गर्दै',
-                            style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      if (!_hasNetworkConnection && !_isLoading) ...[
+                        SizedBox(height: 1.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.wifi_off,
                               color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
-                              fontSize: 8.sp,
+                              size: 5.w,
                             ),
-                          ),
-                        ],
-                      ),
+                            SizedBox(width: 2.w),
+                            Text(
+                              'अफलाइन मोडमा काम गर्दै',
+                              style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                                color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              // Version Info
-              Padding(
-                padding: EdgeInsets.only(bottom: 2.h),
-                child: Text(
+                // Version Info
+                Text(
                   'संस्करण १.०.०',
                   style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                     color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.5),
-                    fontSize: 8.sp,
+                    fontSize: 10.sp,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
