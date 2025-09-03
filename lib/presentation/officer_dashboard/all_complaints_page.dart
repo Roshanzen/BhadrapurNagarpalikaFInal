@@ -17,7 +17,7 @@ class _AllComplaintsPageState extends State<AllComplaintsPage> {
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final String _selectedLanguage = 'ne'; // Default to Nepali
 
   // Mock all complaints data
   final List<Map<String, dynamic>> _allComplaints = [

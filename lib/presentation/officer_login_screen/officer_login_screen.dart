@@ -11,7 +11,7 @@ import './widgets/login_form_widget.dart';
 import './widgets/municipal_header_widget.dart';
 
 class OfficerLoginScreen extends StatefulWidget {
-  const OfficerLoginScreen({Key? key}) : super(key: key);
+  const OfficerLoginScreen({super.key});
 
   @override
   State<OfficerLoginScreen> createState() => _OfficerLoginScreenState();

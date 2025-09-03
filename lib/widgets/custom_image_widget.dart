@@ -13,13 +13,13 @@ class CustomImageWidget extends StatelessWidget {
   final Widget? errorWidget;
 
   const CustomImageWidget({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.width = 50,
     this.height = 50,
     this.fit = BoxFit.cover,
     this.errorWidget,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

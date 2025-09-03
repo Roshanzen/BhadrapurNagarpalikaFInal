@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.bhadrapurnagarpalika'
+    namespace 'com.example.bhadrapur_nagarpalika'
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion '27.0.12077973'
 
@@ -22,11 +22,16 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.example.bhadrapurnagarpalika'
+        applicationId 'com.example.bhadrapur_nagarpalika'
         minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
         versionName flutter.versionName
+
+        // Add SHA-1 fingerprint for Google Sign-In (replace with your actual SHA-1)
+        // To get your SHA-1, run: keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+        // For release builds, use your release keystore
+        // manifestPlaceholders['appAuthRedirectScheme'] = 'com.example.bhadrapurnagarpalika'
     }
 
     buildTypes {

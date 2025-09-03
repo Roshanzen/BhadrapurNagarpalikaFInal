@@ -12,14 +12,14 @@ class RoleCardWidget extends StatelessWidget {
   final bool isSelected;
 
   const RoleCardWidget({
-    Key? key,
+    super.key,
     required this.roleTitle,
     required this.roleSubtitle,
     required this.roleDescription,
     required this.iconName,
     required this.onTap,
     this.isSelected = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

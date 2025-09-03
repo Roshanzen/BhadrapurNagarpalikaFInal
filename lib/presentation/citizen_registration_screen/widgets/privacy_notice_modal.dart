@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
 
 class PrivacyNoticeModal extends StatelessWidget {
-  const PrivacyNoticeModal({Key? key}) : super(key: key);
+  const PrivacyNoticeModal({super.key});
 
   @override
   Widget build(BuildContext context) {

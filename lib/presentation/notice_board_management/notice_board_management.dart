@@ -18,14 +18,14 @@ class NoticeBoardManagement extends StatefulWidget {
 class _NoticeBoardManagementState extends State<NoticeBoardManagement>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final String _selectedLanguage = 'ne'; // Default to Nepali
 
   // Mock notices data
-  List<Map<String, dynamic>> _allNotices = [
+  final List<Map<String, dynamic>> _allNotices = [
     {
       "id": "N001",
       "title": "नगरपालिका सभाको सूचना",

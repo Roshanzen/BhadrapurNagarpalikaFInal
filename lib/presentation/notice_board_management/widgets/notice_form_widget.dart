@@ -40,7 +40,7 @@ class _NoticeFormWidgetState extends State<NoticeFormWidget> {
   DateTime? _scheduledDate;
   XFile? _selectedImage;
   bool _isLoading = false;
-  bool _autoSaveDraft = true;
+  final bool _autoSaveDraft = true;
 
   final List<String> _priorities = ['low', 'medium', 'high'];
   final Map<String, String> _priorityLabels = {
@@ -139,9 +139,8 @@ class _NoticeFormWidgetState extends State<NoticeFormWidget> {
   String _generateNoticeId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random();
-    return 'N' +
-        String.fromCharCodes(Iterable.generate(
-            3, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+    return 'N${String.fromCharCodes(Iterable.generate(
+            3, (_) => chars.codeUnitAt(random.nextInt(chars.length))))}';
   }
 
   Future<void> _saveNotice({required bool publish}) async {

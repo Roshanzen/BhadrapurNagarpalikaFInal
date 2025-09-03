@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/app_export.dart';
 import '../../core/language_manager.dart';
 import './widgets/recent_complaint_card.dart';
+import '../gunaso_form/gunaso_form.dart'; // For GunasoStorage
 
 class IncomingComplaintsPage extends StatefulWidget {
   const IncomingComplaintsPage({super.key});
@@ -17,10 +21,14 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final String _selectedLanguage = 'ne'; // Default to Nepali
 
-  // Mock incoming complaints data
-  final List<Map<String, dynamic>> _incomingComplaints = [
+  // Dynamic incoming complaints data
+  List<Map<String, dynamic>> _incomingComplaints = [];
+  List<Map<String, dynamic>> _allComplaints = [];
+
+  // Mock incoming complaints data (fallback)
+  final List<Map<String, dynamic>> _mockComplaints = [
     {
       "id": "C001",
       "title": "सडक बत्ती बिग्रिएको",
@@ -58,6 +66,84 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
       "phone": "+977-9841234572"
     }
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadComplaints();
+  }
+
+  Future<void> _loadComplaints() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    List<Map<String, dynamic>> apiComplaints = [];
+    List<Map<String, dynamic>> localComplaints = [];
+
+    try {
+      // Try to fetch from API first
+      final response = await http.get(Uri.parse(
+          "https://uat.nirc.com.np:8443/GWP/message/getAllGunasho"));
+
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        apiComplaints = data.map((item) => {
+          "id": item['id']?.toString() ?? 'N/A',
+          "title": item['heading'] ?? 'No Title',
+          "citizenName": item['fullName'] ?? 'Unknown',
+          "submissionDate": _formatDate(item['createdDate']),
+          "priority": item['priority'] ?? 'Medium',
+          "status": item['status'] ?? 'Pending',
+          "ward": item['ward'] ?? 1,
+          "category": item['category'] ?? 'General',
+          "description": item['message'] ?? 'No description',
+          "phone": item['phoneNumber'] ?? 'N/A'
+        }).toList();
+      }
+    } catch (e) {
+      print('Error loading API complaints: $e');
+    }
+
+    try {
+      // Load locally submitted gunasos
+      localComplaints = await GunasoStorage.getGunasos();
+      // Transform local data to match the expected format
+      localComplaints = localComplaints.map((item) => {
+        "id": item['id']?.toString() ?? 'N/A',
+        "title": item['heading'] ?? 'No Title',
+        "citizenName": item['fullName'] ?? 'Unknown',
+        "submissionDate": _formatDate(item['createdDate']),
+        "priority": item['priority'] ?? 'मध्यम',
+        "status": item['status'] ?? 'बाँकी',
+        "ward": item['ward'] ?? 1,
+        "category": item['category'] ?? 'सामान्य',
+        "description": item['message'] ?? 'No description',
+        "phone": item['phoneNumber'] ?? 'N/A'
+      }).toList();
+    } catch (e) {
+      print('Error loading local complaints: $e');
+    }
+
+    // Combine API and local complaints
+    final allComplaints = [...apiComplaints, ...localComplaints, ..._mockComplaints];
+
+    setState(() {
+      _incomingComplaints = allComplaints;
+      _allComplaints = List.from(allComplaints);
+      _isLoading = false;
+    });
+  }
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return DateTime.now().toString().split(' ')[0];
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return DateTime.now().toString().split(' ')[0];
+    }
+  }
 
   List<Map<String, dynamic>> get _filteredComplaints {
     if (_searchQuery.isEmpty) {

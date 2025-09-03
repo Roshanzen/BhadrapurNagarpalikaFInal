@@ -9,11 +9,11 @@ class LoginFormWidget extends StatefulWidget {
   final String? errorMessage;
 
   const LoginFormWidget({
-    Key? key,
+    super.key,
     required this.onLogin,
     required this.isLoading,
     this.errorMessage,
-  }) : super(key: key);
+  });
 
   @override
   State<LoginFormWidget> createState() => _LoginFormWidgetState();

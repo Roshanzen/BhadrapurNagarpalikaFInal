@@ -11,13 +11,13 @@ class ComplaintCategoryCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ComplaintCategoryCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.iconName,
     required this.count,
     required this.backgroundColor,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

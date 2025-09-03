@@ -10,12 +10,12 @@ class SocialAuthButton extends StatelessWidget {
   final bool isLoading;
 
   const SocialAuthButton({
-    Key? key,
+    super.key,
     required this.provider,
     required this.iconName,
     required this.onPressed,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

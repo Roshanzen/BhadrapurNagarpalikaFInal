@@ -8,10 +8,10 @@ class LanguageToggleWidget extends StatelessWidget {
   final VoidCallback onToggle;
 
   const LanguageToggleWidget({
-    Key? key,
+    super.key,
     required this.isNepali,
     required this.onToggle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

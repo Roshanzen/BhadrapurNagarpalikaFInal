@@ -19,8 +19,8 @@ class OfficerDashboard extends StatefulWidget {
 }
 
 class _OfficerDashboardState extends State<OfficerDashboard> {
-  int _notificationCount = 5;
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final int _notificationCount = 5;
+  final String _selectedLanguage = 'ne'; // Default to Nepali
 
   // Complaint categories with compact design
   List<Map<String, dynamic>> get complaintCategories => [
@@ -346,7 +346,7 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
             SizedBox(height: 2.h),
 
             // Notice Board with Photos and Titles
-            Container(
+            SizedBox(
               height: 32.h,
               child: ListView(
                 scrollDirection: Axis.horizontal,

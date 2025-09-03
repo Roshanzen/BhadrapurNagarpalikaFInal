@@ -5,6 +5,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'core/app_export.dart';
 import 'widgets/custom_error_widget.dart';
+import 'widgets/language_wrapper.dart';
+import 'services/auth_service.dart';
+import 'services/language_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,8 +17,20 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    print('Firebase initialized successfully');
+
+    // Initialize Auth Service
+    final authService = AuthService();
+    await authService.initialize();
+    print('AuthService initialized successfully');
+
+    // Initialize Language Service
+    final languageService = LanguageService();
+    await languageService.initialize();
+    print('LanguageService initialized successfully');
+
   } catch (e) {
-    print('Firebase initialization error: $e');
+    print('Service initialization error: $e');
   }
 
   // 🚨 CRITICAL: Custom error handling - DO NOT REMOVE
@@ -28,17 +43,22 @@ void main() async {
   // 🚨 CRITICAL: Device orientation lock - DO NOT REMOVE
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  runApp(MyApp());
+  runApp(
+    LanguageWrapper(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Sizer(builder: (context, orientation, screenType) {
       return MaterialApp(
         title: 'bhadrapur_',
         theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.light,
         // 🚨 CRITICAL: NEVER REMOVE OR MODIFY
         builder: (context, child) {

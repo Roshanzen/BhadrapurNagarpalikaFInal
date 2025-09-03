@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../../core/app_export.dart'; // Make sure you have the necessary imports
+// Make sure you have the necessary imports
 
 class OfficerProfileCard extends StatelessWidget {
   final String officerName;

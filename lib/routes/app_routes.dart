@@ -8,10 +8,15 @@ import '../presentation/role_selection_screen/role_selection_screen.dart';
 import '../presentation/complaint_submission_form/complaint_submission_form.dart';
 import '../presentation/complaint_detail_view/complaint_detail_view.dart';
 import '../presentation/notice_board_management/notice_board_management.dart';
-import '../presentation/gunaso_form/widgets/my_complaint_page.dart';
 import '../presentation/gunaso_form/widgets/pending_work_page.dart';
 import '../presentation/gunaso_form/widgets/under_review_page.dart';
 import '../presentation/gunaso_form/widgets/completed_complaints_page.dart';
+import '../presentation/profile_pages/settings_page.dart';
+import '../presentation/profile_pages/help_page.dart';
+import '../presentation/profile_pages/about_us_page.dart';
+import '../presentation/profile_pages/address_change_page.dart';
+import '../presentation/profile_pages/privacy_policy_page.dart';
+import '../presentation/language_selection_screen/language_selection_screen.dart';
 
 class AppRoutes {
   // Route names
@@ -25,10 +30,15 @@ class AppRoutes {
   static const String complaintSubmissionForm = '/complaint-submission-form';
   static const String complaintDetailView = '/complaint-detail-view';
   static const String noticeBoardManagement = '/notice-board-management';
-  static const String myComplaints = '/my-complaints';
   static const String pendingWork = '/pending-work';
   static const String underReview = '/under-review';
   static const String completedComplaints = '/completed-complaints';
+  static const String settings = '/settings';
+  static const String help = '/help';
+  static const String about = '/about';
+  static const String addressChange = '/address-change';
+  static const String privacy = '/privacy';
+  static const String languageSelection = '/language-selection';
 
   // Route map
   static Map<String, WidgetBuilder> routes = {
@@ -42,9 +52,14 @@ class AppRoutes {
     complaintSubmissionForm: (context) => const ComplaintSubmissionForm(),
     complaintDetailView: (context) => const ComplaintDetailView(),
     noticeBoardManagement: (context) => const NoticeBoardManagement(),
-    myComplaints: (context) => MyComplaintPage(),
     pendingWork: (context) => PendingWorkPage(),
     underReview: (context) => UnderReviewPage(),
     completedComplaints: (context) => CompletedComplaintsPage(),
+    settings: (context) => const SettingsPage(),
+    help: (context) => const HelpPage(),
+    about: (context) => const AboutUsPage(),
+    addressChange: (context) => const AddressChangePage(),
+    privacy: (context) => const PrivacyPolicyPage(),
+    languageSelection: (context) => const LanguageSelectionScreen(),
   };
 }

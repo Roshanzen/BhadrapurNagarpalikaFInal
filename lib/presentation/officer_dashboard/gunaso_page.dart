@@ -18,7 +18,7 @@ class _GunasoPageState extends State<GunasoPage> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'all'; // all, pending, resolved, in_progress
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final String _selectedLanguage = 'ne'; // Default to Nepali
 
   // Mock complaints data - in real app, this would be fetched from API
   final List<Map<String, dynamic>> _allComplaints = [

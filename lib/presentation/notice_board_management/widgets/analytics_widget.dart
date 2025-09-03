@@ -416,7 +416,7 @@ class AnalyticsWidget extends StatelessWidget {
               ],
             ),
           ))
-              .toList(),
+              ,
         ],
       ),
     );

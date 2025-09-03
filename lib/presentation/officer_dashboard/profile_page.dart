@@ -561,7 +561,7 @@ class _ProfilePageState extends State<ProfilePage> {
               filled: !enabled,
               fillColor: enabled
                   ? Colors.transparent
-                  : AppTheme.lightTheme.colorScheme.surfaceVariant.withValues(alpha: 0.1),
+                  : AppTheme.lightTheme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
             ),
             style: enabled
                 ? null

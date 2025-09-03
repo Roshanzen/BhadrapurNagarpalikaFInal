@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 import '../../../core/app_export.dart';
+import '../../../services/auth_service.dart';
+import '../citizen_dashboard/citizen_dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -121,22 +123,64 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     setState(() {
       _loadingStatus = 'प्रमाणीकरण जाँच गर्दै...';
     });
-    await Future.delayed(const Duration(milliseconds: 400));
-    setState(() {
-      _isLoading = false;
-      _loadingStatus = 'तयार छ!';
-    });
+
+    try {
+      // Wait for AuthService to be initialized
+      final authService = AuthService();
+      if (!authService.isInitialized) {
+        await authService.initialize();
+      }
+
+      // Check if user is already authenticated
+      await Future.delayed(const Duration(milliseconds: 400));
+
+      setState(() {
+        _isLoading = false;
+        _loadingStatus = 'तयार छ!';
+      });
+    } catch (e) {
+      debugPrint('Error validating credentials: $e');
+      setState(() {
+        _isLoading = false;
+        _loadingStatus = 'तयार छ!';
+      });
+    }
   }
 
   void _navigateToNextScreen() {
-    // Check for stored authentication
-    bool hasOfficerAuth = false; // This would check actual stored credentials
-    bool hasCitizenAuth = false; // This would check actual stored credentials
-    if (hasOfficerAuth) {
-      Navigator.pushReplacementNamed(context, '/officer-dashboard');
-    } else if (hasCitizenAuth) {
-      Navigator.pushReplacementNamed(context, '/citizen-dashboard');
+    final authService = AuthService();
+
+    debugPrint('Navigation check - AuthService initialized: ${authService.isInitialized}');
+    debugPrint('Navigation check - Current user: ${authService.currentUser?.email ?? 'null'}');
+    debugPrint('Navigation check - Cached user data: ${authService.userData}');
+    debugPrint('Navigation check - Is logged in: ${authService.isLoggedIn}');
+
+    // Check if user is authenticated and has valid cached data
+    if (authService.isLoggedIn && authService.userData != null) {
+      // User is logged in, navigate to appropriate dashboard with cached data
+      final route = authService.getDashboardRoute();
+      debugPrint('✅ User authenticated, navigating to: $route');
+
+      // Convert cached data to format expected by CitizenDashboard
+      final userData = {
+        'displayName': authService.userData!['displayName'] ?? authService.userData!['name'] ?? 'नागरिक',
+        'email': authService.userData!['email'] ?? '',
+        'photoUrl': authService.userData!['photoURL'] ?? authService.userData!['photoUrl'],
+        'localId': authService.userData!['userId'] ?? '',
+        'firstName': authService.userData!['firstName'] ?? '',
+        'lastName': authService.userData!['lastName'] ?? '',
+      };
+
+      // Navigate with user data
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CitizenDashboard(googleUserData: userData),
+        ),
+      );
     } else {
+      // User not authenticated, go to role selection
+      debugPrint('❌ User not authenticated, navigating to role selection');
       Navigator.pushReplacementNamed(context, '/role-selection-screen');
     }
   }

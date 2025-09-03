@@ -21,13 +21,13 @@ class _OfficerComplaintFormState extends State<OfficerComplaintForm> {
   final _locationController = TextEditingController();
   final _contactController = TextEditingController();
 
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final String _selectedLanguage = 'ne'; // Default to Nepali
   String _selectedPriority = 'मध्यम';
   String _selectedCategory = 'सामान्य प्रशासन';
   String _selectedOfficeLevel = 'जिल्ला कार्यालय';
   bool _isUrgent = false;
   bool _isLoading = false;
-  List<File> _selectedFiles = [];
+  final List<File> _selectedFiles = [];
 
   final List<String> _priorities = ['न्यून', 'मध्यम', 'उच्च', 'अत्यधिक'];
   final List<String> _categories = [
@@ -506,7 +506,7 @@ class _OfficerComplaintFormState extends State<OfficerComplaintForm> {
                       Container(
                         padding: EdgeInsets.all(3.w),
                         decoration: BoxDecoration(
-                          color: AppTheme.lightTheme.colorScheme.surfaceVariant,
+                          color: AppTheme.lightTheme.colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(

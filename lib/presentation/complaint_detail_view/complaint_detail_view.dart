@@ -149,7 +149,7 @@ class _ComplaintDetailViewState extends State<ComplaintDetailView> {
   }
 
   void _shareComplaint() {
-    final complaintUrl = 'https://bhadrapur.gov.np/complaint/${_complaintId}';
+    final complaintUrl = 'https://bhadrapur.gov.np/complaint/$_complaintId';
     Clipboard.setData(ClipboardData(text: complaintUrl));
 
     ScaffoldMessenger.of(context).showSnackBar(

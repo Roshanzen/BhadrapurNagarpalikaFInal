@@ -17,7 +17,7 @@ class _ResolvedComplaintsPageState extends State<ResolvedComplaintsPage> {
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  String _selectedLanguage = 'ne'; // Default to Nepali
+  final String _selectedLanguage = 'ne'; // Default to Nepali
 
   // Mock resolved complaints data
   final List<Map<String, dynamic>> _resolvedComplaints = [

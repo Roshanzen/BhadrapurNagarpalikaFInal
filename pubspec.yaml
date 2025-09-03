@@ -14,6 +14,7 @@ dependencies:
   file_picker: ^8.0.0
   firebase_core: ^3.15.2 # Ensure you're using the latest version
   firebase_auth: ^5.7.0   # Firebase Auth for authentication
+  google_sign_in: ^6.2.1  # Google Sign-In for Android/iOS
   flutter_facebook_auth: ^7.1.2
   # CRITICAL: Core UI and responsive design - DO NOT REMOVE OR MODIFY
   sizer: ^2.0.15              # Required for responsive design system

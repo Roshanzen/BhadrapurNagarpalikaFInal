@@ -6,9 +6,9 @@ class HelpBottomSheetWidget extends StatelessWidget {
   final bool isNepali;
 
   const HelpBottomSheetWidget({
-    Key? key,
+    super.key,
     required this.isNepali,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +100,7 @@ class HelpBottomSheetWidget extends StatelessWidget {
                 ),
               ],
             ),
-          )).toList(),
+          )),
           SizedBox(height: 2.h),
           SizedBox(
             width: double.infinity,

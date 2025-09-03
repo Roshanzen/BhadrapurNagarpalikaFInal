@@ -7,9 +7,9 @@ class SuchanaBoardCard extends StatelessWidget {
   final Map<String, dynamic> notice;
 
   const SuchanaBoardCard({
-    Key? key,
+    super.key,
     required this.notice,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

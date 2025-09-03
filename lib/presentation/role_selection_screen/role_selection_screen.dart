@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sizer/sizer.dart';
 import '../../core/app_export.dart';
+import '../../services/language_service.dart';
 import './widgets/help_bottom_sheet_widget.dart';
 import './widgets/language_toggle_widget.dart';
 import './widgets/role_card_widget.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
-  const RoleSelectionScreen({Key? key}) : super(key: key);
+  const RoleSelectionScreen({super.key});
 
   @override
   State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
@@ -15,7 +16,7 @@ class RoleSelectionScreen extends StatefulWidget {
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     with TickerProviderStateMixin {
-  bool _isNepali = true;
+  late LanguageService _languageService;
   int _selectedRole = -1;
   late AnimationController _fadeController;
   late AnimationController _scaleController;
@@ -48,6 +49,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
   @override
   void initState() {
     super.initState();
+    _languageService = LanguageService();
+    _languageService.addListener(_onLanguageChanged);
     _initializeAnimations();
   }
 
@@ -74,15 +77,22 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
 
   @override
   void dispose() {
+    _languageService.removeListener(_onLanguageChanged);
     _fadeController.dispose();
     _scaleController.dispose();
     super.dispose();
   }
 
+  void _onLanguageChanged() {
+    if (mounted) {
+      setState(() {
+        // Force rebuild when language changes
+      });
+    }
+  }
+
   void _toggleLanguage() {
-    setState(() {
-      _isNepali = !_isNepali;
-    });
+    _languageService.toggleLanguage();
     HapticFeedback.lightImpact();
   }
 
@@ -92,7 +102,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => HelpBottomSheetWidget(isNepali: _isNepali),
+      builder: (context) => HelpBottomSheetWidget(isNepali: _languageService.isNepali),
     );
   }
 
@@ -118,14 +128,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            _isNepali ? "एप बन्द गर्नुहुन्छ?" : "Exit App?",
+            _languageService.isNepali ? "एप बन्द गर्नुहुन्छ?" : "Exit App?",
             style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
               color: AppTheme.lightTheme.colorScheme.onSurface,
             ),
           ),
           content: Text(
-            _isNepali
+            _languageService.isNepali
                 ? "के तपाईं भद्रपुर नगरपालिका गुनासो पोर्टल बन्द गर्न चाहनुहुन्छ?"
                 : "Do you want to exit Bhadrapur Nagarpalika Complaint Portal?",
             style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
@@ -136,7 +146,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                _isNepali ? "रद्द गर्नुहोस्" : "Cancel",
+                _languageService.isNepali ? "रद्द गर्नुहोस्" : "Cancel",
                 style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
                   color: AppTheme.lightTheme.colorScheme.primary,
                 ),
@@ -148,7 +158,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                 backgroundColor: AppTheme.lightTheme.colorScheme.primary,
               ),
               child: Text(
-                _isNepali ? "बाहिर निस्कनुहोस्" : "Exit",
+                _languageService.isNepali ? "बाहिर निस्कनुहोस्" : "Exit",
                 style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
                   color: AppTheme.lightTheme.colorScheme.onPrimary,
                 ),
@@ -190,7 +200,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         LanguageToggleWidget(
-                          isNepali: _isNepali,
+                          isNepali: _languageService.isNepali,
                           onToggle: _toggleLanguage,
                         ),
                         GestureDetector(
@@ -224,7 +234,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                           ),
                           SizedBox(height: 3.h),
                           Text(
-                            _isNepali ? "भद्रपुर नगरपालिका" : "Bhadrapur Nagarpalika",
+                            _languageService.isNepali ? "भद्रपुर नगरपालिका" : "Bhadrapur Nagarpalika",
                             style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
@@ -233,7 +243,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                           ),
                           SizedBox(height: 1.h),
                           Text(
-                            _isNepali ? "गुनासो व्यवस्थापन पोर्टल" : "Complaint Management Portal",
+                            _languageService.isNepali ? "गुनासो व्यवस्थापन पोर्टल" : "Complaint Management Portal",
                             style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                               color: Colors.white70,
                               fontWeight: FontWeight.w500,
@@ -251,7 +261,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                     child: Column(
                       children: [
                         Text(
-                          _isNepali ? "आफ्नो भूमिका छान्नुहोस्" : "Select Your Role",
+                          _languageService.isNepali ? "आफ्नो भूमिका छान्नुहोस्" : "Select Your Role",
                           style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -265,9 +275,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                             itemBuilder: (context, index) {
                               final role = _roleData[index];
                               return RoleCardWidget(
-                                roleTitle: _isNepali ? role["titleNepali"] : role["titleEnglish"],
-                                roleSubtitle: _isNepali ? role["subtitleNepali"] : role["subtitleEnglish"],
-                                roleDescription: _isNepali ? role["descriptionNepali"] : role["descriptionEnglish"],
+                                roleTitle: _languageService.isNepali ? role["titleNepali"] : role["titleEnglish"],
+                                roleSubtitle: _languageService.isNepali ? role["subtitleNepali"] : role["subtitleEnglish"],
+                                roleDescription: _languageService.isNepali ? role["descriptionNepali"] : role["descriptionEnglish"],
                                 iconName: role["icon"],
                                 isSelected: _selectedRole == index,
                                 onTap: () => _selectRole(index),
@@ -294,7 +304,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                           ),
                           SizedBox(width: 2.w),
                           Text(
-                            _isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
+                            _languageService.isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
                             style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,

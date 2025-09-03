@@ -17,6 +17,13 @@ class LanguageManager {
       'language_changed': 'भाषा परिवर्तन गरियो',
       'language_change_failed': 'भाषा परिवर्तन गर्न असफल भयो',
       'select_language': 'भाषा चयन गर्नुहोस्',
+      'welcome_message': 'स्वागत छ, {name}!',
+      'google_account_connected': 'तपाईंको Google खाता कनेक्ट भयो।',
+      'complaint_important': 'तपाईंको गुनासो महत्वपूर्ण छ।',
+      'home': 'गृह',
+      'my_complaints': 'मेरा गुनासोहरू',
+      'pending_work': 'काम भैरहेको',
+      'completed_complaints': 'सम्पूर्ण गुनासो',
 
       // Dashboard
       'officer_dashboard': 'अधिकृत ड्यासबोर्ड',
@@ -135,6 +142,13 @@ class LanguageManager {
       'language_changed': 'Language changed',
       'language_change_failed': 'Failed to change language',
       'select_language': 'Select Language',
+      'welcome_message': 'Welcome, {name}!',
+      'google_account_connected': 'Your Google account is connected.',
+      'complaint_important': 'Your complaint is important.',
+      'home': 'Home',
+      'my_complaints': 'My Complaints',
+      'pending_work': 'Pending Work',
+      'completed_complaints': 'Completed Complaints',
 
       // Dashboard
       'officer_dashboard': 'Officer Dashboard',
@@ -253,6 +267,13 @@ class LanguageManager {
       'language_changed': 'भाषा बदल दी गई',
       'language_change_failed': 'भाषा बदलने में विफल',
       'select_language': 'भाषा चुनें',
+      'welcome_message': 'स्वागत है, {name}!',
+      'google_account_connected': 'आपका Google खाता कनेक्ट हो गया है।',
+      'complaint_important': 'आपकी शिकायत महत्वपूर्ण है।',
+      'home': 'घर',
+      'my_complaints': 'मेरी शिकायतें',
+      'pending_work': 'लंबित कार्य',
+      'completed_complaints': 'पूर्ण शिकायतें',
 
       // Dashboard
       'officer_dashboard': 'अधिकारी डैशबोर्ड',

@@ -3,13 +3,19 @@ import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
 
-class ProfileDrawer extends StatelessWidget {
+class ProfileDrawer extends StatefulWidget {
   final Map<String, dynamic> userProfile;
 
   const ProfileDrawer({
-    Key? key,
+    super.key,
     required this.userProfile,
-  }) : super(key: key);
+  });
+
+  @override
+  State<ProfileDrawer> createState() => _ProfileDrawerState();
+}
+
+class _ProfileDrawerState extends State<ProfileDrawer> {
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +86,10 @@ class ProfileDrawer extends StatelessWidget {
           CircleAvatar(
             radius: 8.w,
             backgroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-            child: userProfile['avatar'] != null
+            child: widget.userProfile['avatar'] != null
                 ? ClipOval(
               child: CustomImageWidget(
-                imageUrl: userProfile['avatar'] as String,
+                imageUrl: widget.userProfile['avatar'] as String,
                 width: 16.w,
                 height: 16.w,
                 fit: BoxFit.cover,
@@ -97,14 +103,14 @@ class ProfileDrawer extends StatelessWidget {
           ),
           SizedBox(height: 1.h),
           Text(
-            userProfile['name'] as String? ?? 'नागरिक',
+            widget.userProfile['name'] as String? ?? 'नागरिक',
             style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
               color: AppTheme.lightTheme.colorScheme.onPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
           Text(
-            userProfile['email'] as String? ?? '',
+            widget.userProfile['email'] as String? ?? '',
             style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
               color: AppTheme.lightTheme.colorScheme.onPrimary
                   .withValues(alpha: 0.8),
@@ -130,15 +136,15 @@ class ProfileDrawer extends StatelessWidget {
           ),
           SizedBox(height: 2.h),
           _buildInfoRow(
-              'फोन नम्बर', userProfile['phone'] as String? ?? 'N/A', 'phone'),
-          _buildInfoRow('वार्ड नम्बर', 'वार्ड ${userProfile['ward'] ?? 'N/A'}',
+              'फोन नम्बर', widget.userProfile['phone'] as String? ?? 'N/A', 'phone'),
+          _buildInfoRow('वार्ड नम्बर', 'वार्ड ${widget.userProfile['ward'] ?? 'N/A'}',
               'location_city'),
           _buildInfoRow(
-              'ठेगाना', userProfile['address'] as String? ?? 'N/A', 'home'),
+              'ठेगाना', widget.userProfile['address'] as String? ?? 'N/A', 'home'),
           _buildInfoRow(
               'सदस्यता मिति',
               _formatDate(
-                  userProfile['joinDate'] as DateTime? ?? DateTime.now()),
+                  widget.userProfile['joinDate'] as DateTime? ?? DateTime.now()),
               'calendar_today'),
         ],
       ),
@@ -184,9 +190,10 @@ class ProfileDrawer extends StatelessWidget {
   Widget _buildMenuItems(BuildContext context) {
     final menuItems = [
       {'title': 'सेटिङ्गहरू', 'icon': 'settings', 'route': '/settings'},
+      {'title': 'भाषा परिवर्तन', 'icon': 'language', 'route': '/language-selection'},
       {'title': 'सहायता', 'icon': 'help', 'route': '/help'},
       {'title': 'हाम्रो बारेमा', 'icon': 'info', 'route': '/about'},
-      {'title': 'भाषा परिवर्तन', 'icon': 'language', 'route': '/language'},
+      {'title': 'ठेगाना परिवर्तन', 'icon': 'location_city', 'route': '/address-change'},
       {'title': 'गोपनीयता नीति', 'icon': 'privacy_tip', 'route': '/privacy'},
     ];
 
@@ -209,7 +216,7 @@ class ProfileDrawer extends StatelessWidget {
         ),
         onTap: () {
           Navigator.pop(context);
-          // Navigate to respective screens
+          Navigator.pushNamed(context, item['route'] as String);
         },
       ))
           .toList(),
