@@ -182,11 +182,16 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
           child: Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.teal, Colors.blue],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppTheme.lightTheme.colorScheme.primary,
+                  AppTheme.lightTheme.colorScheme.primaryContainer,
+                  AppTheme.lightTheme.colorScheme.secondary,
+                ],
+                stops: const [0.0, 0.6, 1.0],
               ),
             ),
             child: FadeTransition(

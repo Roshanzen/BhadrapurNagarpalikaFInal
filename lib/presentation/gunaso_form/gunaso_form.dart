@@ -10,7 +10,7 @@ import 'package:sizer/sizer.dart';
 import '../gunaso_form/widgets/my_complaint_page.dart'; // <-- Import MyComplaintPage
 import '../../core/app_export.dart';
 
-// Simple local storage for submitted gunasos (for demo purposes)
+// Simple local storage for submitted gunasos (for officer dashboard)
 class GunasoStorage {
   static const String _key = 'submitted_gunasos';
 
@@ -58,6 +58,25 @@ class _GunasoFormState extends State<GunasoForm> {
   final List<File> _selectedFiles = [];
   bool _isInitialized = false;
 
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Go back to previous screen
+            },
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -67,23 +86,49 @@ class _GunasoFormState extends State<GunasoForm> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Load user data from SharedPreferences
-    final memberId = prefs.getString('memberId') ?? '';
-    final memberName = prefs.getString('memberName') ?? '';
-    final phone = prefs.getString('phone') ?? '';
-    final orgId = prefs.getString('orgId') ?? '';
+    // Required data from SharedPreferences
+    final memberId = prefs.getString('memberId');
+    final facebookId = prefs.getString('facebookId');
+    final memberName = prefs.getString('memberName');
+    final userName = prefs.getString('userName');
+    final orgId = prefs.getString('orgId');
+    final orgName = prefs.getString('orgName');
+    final selectedWardName = prefs.getString('selectedWardName');
+    
+    // Debug logging
+    print('=== GUNASO FORM DEBUG ===');
+    print('memberId: $memberId');
+    print('facebookId: $facebookId');
+    print('memberName: $memberName');
+    print('userName: $userName');
+    print('orgId: $orgId');
+    print('orgName: $orgName');
+    print('selectedWardName: $selectedWardName');
+    
+    // Use userName as fallback for memberName
+    final finalMemberName = memberName ?? userName;
+    
+    // Check if required data exists
+    if (memberId == null || finalMemberName == null || orgId == null) {
+      print('Missing data - memberId: $memberId, memberName: $finalMemberName, orgId: $orgId');
+      _showErrorDialog('Missing user data. Please login again.');
+      return;
+    }
 
     setState(() {
-      _memberIdController.text = memberId;
-      _fullNameController.text = memberName;
-      _phoneNumberController.text = phone;
+      _memberIdController.text = facebookId ?? memberId; // Use facebookId if available, else memberId
+      _fullNameController.text = finalMemberName;
+      _phoneNumberController.text = '+977-XXXXXXXXXX'; // User can edit
       _orgIdController.text = orgId;
-      _gunashoPlaceController.text = 'भद्रपुर नगरपालिका';
-      _popularPlaceController.text = 'भद्रपुर';
-      _headingController.text = '';
-      _messageController.text = '';
-      _sakhaIdController.text = '';
+      _gunashoPlaceController.text = selectedWardName ?? orgName ?? 'नगरपालिका';
+      _popularPlaceController.text = (selectedWardName ?? orgName)?.split(' ')[0] ?? 'स्थान';
+      _sakhaIdController.text = '1'; // Default department
       _isInitialized = true;
+      
+      print('Form initialized successfully with:');
+      print('Member ID: ${_memberIdController.text}');
+      print('Full Name: ${_fullNameController.text}');
+      print('Org ID: ${_orgIdController.text}');
     });
   }
 
@@ -112,7 +157,7 @@ class _GunasoFormState extends State<GunasoForm> {
     }
   }
 
-  Future<void> _submitGunaso(String url) async {
+  Future<void> _submitGunaso() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -120,142 +165,60 @@ class _GunasoFormState extends State<GunasoForm> {
       _responseMessage = null;
     });
 
-    // Check if we're in demo mode (no memberId)
-    final isDemoMode = _memberIdController.text.isEmpty || _memberIdController.text == 'null';
+    const String apiUrl = 'http://localhost:8443/GWP/message/addGunashoFromMobile';
+    
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(apiUrl));
 
-    if (isDemoMode) {
-      // Demo mode - simulate successful submission
-      await Future.delayed(const Duration(seconds: 2));
+      // Add form fields matching backend API
+      request.fields['memberIdOrGUserFbId'] = _memberIdController.text;
+      request.fields['gunashoPlace'] = _gunashoPlaceController.text;
+      request.fields['popularPlace'] = _popularPlaceController.text;
+      request.fields['fullName'] = _fullNameController.text;
+      request.fields['heading'] = _headingController.text;
+      request.fields['message'] = _messageController.text;
+      request.fields['phoneNumber'] = _phoneNumberController.text;
+      request.fields['orgId'] = _orgIdController.text;
+      request.fields['sakhaId'] = _sakhaIdController.text;
 
-      // Save to local storage for officer view
-      final submittedGunaso = {
-        'id': 'C${DateTime.now().millisecondsSinceEpoch}',
-        'heading': _headingController.text,
-        'message': _messageController.text,
-        'fullName': _fullNameController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'gunashoPlace': _gunashoPlaceController.text,
-        'popularPlace': _popularPlaceController.text,
-        'memberId': _memberIdController.text,
-        'orgId': _orgIdController.text,
-        'sakhaId': _sakhaIdController.text,
-        'status': 'बाँकी',
-        'priority': 'मध्यम',
-        'createdDate': DateTime.now().toIso8601String(),
-        'ward': 1, // Default ward
-        'category': 'सामान्य' // Default category
-      };
+      // Add files if any
+      for (var file in _selectedFiles) {
+        request.files.add(
+          await http.MultipartFile.fromPath('files', file.path),
+        );
+      }
 
-      // await GunasoStorage.saveGunaso(submittedGunaso);
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final jsonResponse = json.decode(responseBody);
 
+      final statusCode = jsonResponse['statusCode'] is String 
+          ? int.tryParse(jsonResponse['statusCode']) ?? 300
+          : jsonResponse['statusCode'] ?? 300;
+      
       setState(() {
         _isLoading = false;
-        _responseMessage = 'Demo Mode: Gunaso submitted successfully!';
-
-        // Navigate to MyComplaintPage
+        if (statusCode == 200 && jsonResponse['success'] == true) {
+          _responseMessage = jsonResponse['message'] ?? 'Gunaso submitted successfully!';
+        } else {
+          _responseMessage = jsonResponse['message'] ?? 'Failed to submit Gunaso';
+        }
+      });
+      
+      // Navigate after setState if successful
+      if (statusCode == 200 && jsonResponse['success'] == true) {
+        final prefs = await SharedPreferences.getInstance();
+        final facebookId = prefs.getString('facebookId') ?? _memberIdController.text;
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => MyComplaintPage(
-              memberId: _memberIdController.text,
+              memberId: facebookId,
             ),
           ),
         );
-
-        // Clear fields
-        _formKey.currentState!.reset();
-        _memberIdController.clear();
-        _gunashoPlaceController.clear();
-        _popularPlaceController.clear();
-        _fullNameController.clear();
-        _headingController.clear();
-        _messageController.clear();
-        _phoneNumberController.clear();
-        _sakhaIdController.clear();
-        _orgIdController.clear();
-        _selectedFiles.clear();
-      });
-      return;
-    }
-
-    // Real API submission
-    final request = http.MultipartRequest('POST', Uri.parse(url));
-
-    // Add form fields
-    request.fields['memberIdOrGUserFbId'] = _memberIdController.text;
-    request.fields['gunashoPlace'] = _gunashoPlaceController.text;
-    request.fields['popularPlace'] = _popularPlaceController.text;
-    request.fields['fullName'] = _fullNameController.text;
-    request.fields['heading'] = _headingController.text;
-    request.fields['message'] = _messageController.text;
-    request.fields['phoneNumber'] = _phoneNumberController.text;
-    request.fields['sakhaId'] = _sakhaIdController.text;
-    request.fields['orgId'] = _orgIdController.text;
-
-    // Add files
-    for (var file in _selectedFiles) {
-      request.files.add(
-        await http.MultipartFile.fromPath('files', file.path),
-      );
-    }
-
-    try {
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      setState(() {
-        _isLoading = false;
-        if (response.statusCode == 200) {
-          _responseMessage = 'Gunaso submitted successfully!';
-
-          // Save to local storage for officer view
-          final submittedGunaso = {
-            'id': 'C${DateTime.now().millisecondsSinceEpoch}',
-            'heading': _headingController.text,
-            'message': _messageController.text,
-            'fullName': _fullNameController.text,
-            'phoneNumber': _phoneNumberController.text,
-            'gunashoPlace': _gunashoPlaceController.text,
-            'popularPlace': _popularPlaceController.text,
-            'memberId': _memberIdController.text,
-            'orgId': _orgIdController.text,
-            'sakhaId': _sakhaIdController.text,
-            'status': 'बाँकी',
-            'priority': 'मध्यम',
-            'createdDate': DateTime.now().toIso8601String(),
-            'ward': 1, // Default ward
-            'category': 'सामान्य' // Default category
-          };
-
-          // Temporarily disabled due to async issue
-          // await GunasoStorage.saveGunaso(submittedGunaso);
-
-          // Navigate to MyComplaintPage
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MyComplaintPage(
-                memberId: _memberIdController.text,
-              ),
-            ),
-          );
-
-          // Clear fields
-          _formKey.currentState!.reset();
-          _memberIdController.clear();
-          _gunashoPlaceController.clear();
-          _popularPlaceController.clear();
-          _fullNameController.clear();
-          _headingController.clear();
-          _messageController.clear();
-          _phoneNumberController.clear();
-          _sakhaIdController.clear();
-          _orgIdController.clear();
-          _selectedFiles.clear();
-        } else {
-          _responseMessage = 'Failed to submit Gunaso: ${response.statusCode}';
-        }
-      });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -361,135 +324,84 @@ class _GunasoFormState extends State<GunasoForm> {
 
                   // Personal Information Section
                   _buildSectionHeader('व्यक्तिगत जानकारी', 'person'),
-                  SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _fullNameController,
-                    label: 'पुरा नाम',
-                    hint: 'तपाईंको पुरा नाम लेख्नुहोस्',
-                    icon: 'person',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया पुरा नाम लेख्नुहोस्';
-                      }
-                      return null;
-                    },
+                  SizedBox(height: 1.5.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCompactTextField(
+                          controller: _fullNameController,
+                          label: 'पुरा नाम',
+                          icon: 'person',
+                          validator: (value) => value?.isEmpty == true ? 'आवश्यक' : null,
+                        ),
+                      ),
+                      SizedBox(width: 3.w),
+                      Expanded(
+                        child: _buildCompactTextField(
+                          controller: _phoneNumberController,
+                          label: 'फोन नम्बर',
+                          icon: 'phone',
+                          keyboardType: TextInputType.phone,
+                          validator: (value) => value?.isEmpty == true ? 'आवश्यक' : null,
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _phoneNumberController,
-                    label: 'फोन नम्बर',
-                    hint: 'तपाईंको फोन नम्बर लेख्नुहोस्',
-                    icon: 'phone',
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया फोन नम्बर लेख्नुहोस्';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 3.h),
 
                   // Location Information Section
                   _buildSectionHeader('स्थान जानकारी', 'location_city'),
-                  SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _gunashoPlaceController,
-                    label: 'गुनासो स्थान',
-                    hint: 'गुनासो भएको स्थान लेख्नुहोस्',
-                    icon: 'location_city',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया गुनासो स्थान लेख्नुहोस्';
-                      }
-                      return null;
-                    },
+                  SizedBox(height: 1.5.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _buildCompactTextField(
+                          controller: _gunashoPlaceController,
+                          label: 'गुनासो स्थान',
+                          icon: 'location_city',
+                          validator: (value) => value?.isEmpty == true ? 'आवश्यक' : null,
+                        ),
+                      ),
+                      SizedBox(width: 3.w),
+                      Expanded(
+                        child: _buildCompactTextField(
+                          controller: _popularPlaceController,
+                          label: 'प्रसिद्ध स्थान',
+                          icon: 'place',
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _popularPlaceController,
-                    label: 'प्रसिद्ध स्थान',
-                    hint: 'नजिकको प्रसिद्ध स्थान लेख्नुहोस्',
-                    icon: 'place',
-                  ),
-                  SizedBox(height: 3.h),
 
                   // Complaint Details Section
                   _buildSectionHeader('गुनासो विवरण', 'description'),
-                  SizedBox(height: 2.h),
-                  _buildModernTextField(
+                  SizedBox(height: 1.5.h),
+                  _buildCompactTextField(
                     controller: _headingController,
                     label: 'गुनासो शीर्षक',
-                    hint: 'गुनासोको संक्षिप्त शीर्षक लेख्नुहोस्',
                     icon: 'title',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया गुनासो शीर्षक लेख्नुहोस्';
-                      }
-                      return null;
-                    },
+                    validator: (value) => value?.isEmpty == true ? 'आवश्यक' : null,
                   ),
-                  SizedBox(height: 2.h),
-                  _buildModernTextField(
+                  SizedBox(height: 1.5.h),
+                  _buildCompactTextField(
                     controller: _messageController,
                     label: 'गुनासो विवरण',
-                    hint: 'गुनासोको विस्तृत विवरण लेख्नुहोस्',
                     icon: 'message',
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया गुनासो विवरण लेख्नुहोस्';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 3.h),
-
-                  // Administrative Information Section
-                  _buildSectionHeader('प्रशासनिक जानकारी', 'admin_panel_settings'),
-                  SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _memberIdController,
-                    label: 'सदस्य ID',
-                    hint: 'तपाईंको सदस्य ID लेख्नुहोस्',
-                    icon: 'badge',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया सदस्य ID लेख्नुहोस्';
-                      }
-                      return null;
-                    },
+                    maxLines: 3,
+                    validator: (value) => value?.isEmpty == true ? 'आवश्यक' : null,
                   ),
                   SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _orgIdController,
-                    label: 'संगठन ID',
-                    hint: 'तपाईंको संगठन ID लेख्नुहोस्',
-                    icon: 'business',
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'कृपया संगठन ID लेख्नुहोस्';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 2.h),
-                  _buildModernTextField(
-                    controller: _sakhaIdController,
-                    label: 'शाखा ID',
-                    hint: 'तपाईंको शाखा ID लेख्नुहोस्',
-                    icon: 'account_tree',
-                  ),
-                  SizedBox(height: 3.h),
 
                   // File Upload Section
                   _buildSectionHeader('फाइलहरू संलग्न गर्नुहोस्', 'attach_file'),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: 1.5.h),
                   Container(
-                    padding: EdgeInsets.all(4.w),
+                    padding: EdgeInsets.all(3.w),
                     decoration: BoxDecoration(
                       color: AppTheme.lightTheme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: AppTheme.lightTheme.colorScheme.outline.withOpacity(0.3),
                         width: 1,
@@ -500,17 +412,17 @@ class _GunasoFormState extends State<GunasoForm> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildUploadButton(
+                            _buildCompactUploadButton(
                               icon: 'photo_library',
                               label: 'ग्यालरी',
                               onPressed: () => _pickImage(ImageSource.gallery),
                             ),
-                            _buildUploadButton(
+                            _buildCompactUploadButton(
                               icon: 'camera_alt',
                               label: 'क्यामेरा',
                               onPressed: () => _pickImage(ImageSource.camera),
                             ),
-                            _buildUploadButton(
+                            _buildCompactUploadButton(
                               icon: 'attach_file',
                               label: 'फाइल',
                               onPressed: _pickFile,
@@ -518,20 +430,16 @@ class _GunasoFormState extends State<GunasoForm> {
                           ],
                         ),
                         if (_selectedFiles.isNotEmpty) ...[
-                          SizedBox(height: 2.h),
+                          SizedBox(height: 1.5.h),
                           Wrap(
-                            spacing: 2.w,
-                            runSpacing: 2.w,
+                            spacing: 1.5.w,
+                            runSpacing: 1.h,
                             children: _selectedFiles.map((file) {
                               return Container(
-                                padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
+                                padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
                                 decoration: BoxDecoration(
                                   color: AppTheme.lightTheme.colorScheme.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: AppTheme.lightTheme.colorScheme.primary.withOpacity(0.3),
-                                    width: 1,
-                                  ),
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -539,23 +447,21 @@ class _GunasoFormState extends State<GunasoForm> {
                                     CustomIconWidget(
                                       iconName: 'insert_drive_file',
                                       color: AppTheme.lightTheme.colorScheme.primary,
-                                      size: 4.w,
+                                      size: 3.w,
                                     ),
                                     SizedBox(width: 1.w),
                                     Text(
-                                      file.path.split('/').last,
+                                      file.path.split('/').last.length > 15 
+                                          ? '${file.path.split('/').last.substring(0, 15)}...'
+                                          : file.path.split('/').last,
                                       style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                                         color: AppTheme.lightTheme.colorScheme.primary,
-                                        fontWeight: FontWeight.w500,
+                                        fontSize: 10.sp,
                                       ),
                                     ),
                                     SizedBox(width: 1.w),
                                     GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedFiles.remove(file);
-                                        });
-                                      },
+                                      onTap: () => setState(() => _selectedFiles.remove(file)),
                                       child: CustomIconWidget(
                                         iconName: 'close',
                                         color: AppTheme.lightTheme.colorScheme.error,
@@ -571,12 +477,12 @@ class _GunasoFormState extends State<GunasoForm> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 3.h),
 
                   // Submit Button
                   Container(
                     width: double.infinity,
-                    height: 14.w,
+                    height: 12.w,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -594,10 +500,7 @@ class _GunasoFormState extends State<GunasoForm> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: _isLoading
-                          ? null
-                          : () => _submitGunaso(
-                              'https://uat.nirc.com.np:8443/GWP/message/addGunashoFromMobile'),
+                      onPressed: _isLoading ? null : _submitGunaso,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
@@ -614,7 +517,7 @@ class _GunasoFormState extends State<GunasoForm> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 3.h),
                 ],
               ),
             ),
@@ -688,10 +591,9 @@ class _GunasoFormState extends State<GunasoForm> {
     );
   }
 
-  Widget _buildModernTextField({
+  Widget _buildCompactTextField({
     required TextEditingController controller,
     required String label,
-    required String hint,
     required String icon,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
@@ -700,53 +602,43 @@ class _GunasoFormState extends State<GunasoForm> {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.lightTheme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: AppTheme.lightTheme.colorScheme.outline.withOpacity(0.3),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.lightTheme.colorScheme.shadow.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines ?? 1,
-        style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
+        style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
           color: AppTheme.lightTheme.colorScheme.onSurface,
+          fontSize: 12.sp,
         ),
         decoration: InputDecoration(
           labelText: label,
-          hintText: hint,
-          labelStyle: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
+          labelStyle: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
             color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-          hintStyle: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-            color: AppTheme.lightTheme.colorScheme.onSurfaceVariant.withOpacity(0.6),
+            fontSize: 11.sp,
           ),
           prefixIcon: Padding(
-            padding: EdgeInsets.all(2.w),
+            padding: EdgeInsets.all(1.5.w),
             child: CustomIconWidget(
               iconName: icon,
               color: AppTheme.lightTheme.colorScheme.primary,
-              size: 5.w,
+              size: 4.w,
             ),
           ),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+          contentPadding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.5.h),
         ),
         validator: validator,
       ),
     );
   }
 
-  Widget _buildUploadButton({
+  Widget _buildCompactUploadButton({
     required String icon,
     required String label,
     required VoidCallback onPressed,
@@ -754,10 +646,10 @@ class _GunasoFormState extends State<GunasoForm> {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: EdgeInsets.all(3.w),
+        padding: EdgeInsets.all(2.w),
         decoration: BoxDecoration(
           color: AppTheme.lightTheme.colorScheme.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: AppTheme.lightTheme.colorScheme.primary.withOpacity(0.3),
             width: 1,
@@ -768,14 +660,15 @@ class _GunasoFormState extends State<GunasoForm> {
             CustomIconWidget(
               iconName: icon,
               color: AppTheme.lightTheme.colorScheme.primary,
-              size: 8.w,
+              size: 6.w,
             ),
-            SizedBox(height: 1.h),
+            SizedBox(height: 0.5.h),
             Text(
               label,
               style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                 color: AppTheme.lightTheme.colorScheme.primary,
                 fontWeight: FontWeight.w600,
+                fontSize: 10.sp,
               ),
             ),
           ],

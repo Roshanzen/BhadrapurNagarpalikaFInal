@@ -34,7 +34,8 @@ class _CitizenDashboardState extends State<CitizenDashboard>
   int _notificationCount = 0;
   bool _showWelcomeBox = true;
 
-  late Map<String, dynamic> _userProfile;
+  Map<String, dynamic> _userProfile = {};
+  bool _isProfileLoaded = false;
   late LanguageService _languageService;
   late NotificationService _notificationService;
 
@@ -50,6 +51,15 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     // Listen to notification changes
     _notificationService.addListener(_onNotificationChanged);
 
+    // Initialize user profile immediately
+    _initializeUserProfile().then((_) {
+      if (mounted) {
+        setState(() {
+          _isProfileLoaded = true;
+        });
+      }
+    });
+
     _initializeServices();
 
     // Auto-hide welcome box after 5 seconds
@@ -62,14 +72,20 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     });
   }
 
-  void _initializeUserProfile() {
+  Future<void> _initializeUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    
     if (widget.googleUserData != null) {
+      // Get selected ward data (user's choice) instead of API response ward
+      final selectedWardNumber = prefs.getInt('selectedWardNumber') ?? 1;
+      final selectedWardName = prefs.getString('selectedWardName') ?? 'भद्रपुर नगरपालिका';
+      
       _userProfile = {
         "name": widget.googleUserData!['displayName'] ?? widget.googleUserData!['fullName'] ?? 'नागरिक',
         "email": widget.googleUserData!['email'] ?? '',
         "phone": "+977-XXXXXXXXXX",
-        "ward": 1,
-        "address": "भद्रपुर नगरपालिका",
+        "ward": selectedWardNumber,
+        "address": selectedWardName,
         "avatar": widget.googleUserData!['photoUrl'] ?? widget.googleUserData!['picture'] ?? null,
         "joinDate": DateTime.now(),
         "isGoogleUser": true,
@@ -78,22 +94,42 @@ class _CitizenDashboardState extends State<CitizenDashboard>
         "lastName": widget.googleUserData!['lastName'] ?? '',
       };
     } else {
-      _userProfile = {
-        "name": "राम बहादुर श्रेष्ठ",
-        "email": "ram.shrestha@gmail.com",
-        "phone": "+977-9841234567",
-        "ward": 5,
-        "address": "भद्रपुर-५, झापा",
-        "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-        "joinDate": DateTime.now().subtract(Duration(days: 180)),
-        "isGoogleUser": false,
-      };
+      // Try to load from SharedPreferences first
+      final savedName = prefs.getString('userName');
+      final savedEmail = prefs.getString('userEmail');
+      
+      if (savedName != null && savedEmail != null) {
+        // Get selected ward data (user's choice) instead of API response ward
+        final selectedWardNumber = prefs.getInt('selectedWardNumber') ?? 1;
+        final selectedWardName = prefs.getString('selectedWardName') ?? 'भद्रपुर नगरपालिका';
+        
+        _userProfile = {
+          "name": savedName,
+          "email": savedEmail,
+          "phone": prefs.getString('userPhone') ?? "+977-XXXXXXXXXX",
+          "ward": selectedWardNumber,
+          "address": selectedWardName,
+          "avatar": prefs.getString('userAvatar'),
+          "joinDate": DateTime.now(),
+          "isGoogleUser": prefs.getBool('isGoogleUser') ?? false,
+        };
+      } else {
+        _userProfile = {
+          "name": "राम बहादुर श्रेष्ठ",
+          "email": "ram.shrestha@gmail.com",
+          "phone": "+977-9841234567",
+          "ward": 5,
+          "address": "भद्रपुर-५, झापा",
+          "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+          "joinDate": DateTime.now().subtract(Duration(days: 180)),
+          "isGoogleUser": false,
+        };
+      }
     }
   }
 
   Future<void> _initializeServices() async {
     await _notificationService.initialize();
-    _initializeUserProfile();
   }
 
   void _onNotificationChanged() {
@@ -187,6 +223,17 @@ class _CitizenDashboardState extends State<CitizenDashboard>
 
   @override
   Widget build(BuildContext context) {
+    if (!_isProfileLoaded) {
+      return Scaffold(
+        backgroundColor: AppTheme.lightTheme.colorScheme.surface,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.lightTheme.colorScheme.primary,
+          ),
+        ),
+      );
+    }
+    
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppTheme.lightTheme.colorScheme.surface,
@@ -283,7 +330,7 @@ class _CitizenDashboardState extends State<CitizenDashboard>
                             ),
                           ),
                           Text(
-                            'वार्ड ${_userProfile['ward']} • भद्रपुर',
+                            'वार्ड ${_userProfile['ward']}',
                             style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
                               color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.8),
                               fontSize: 11.sp,
@@ -1302,10 +1349,10 @@ class _CitizenDashboardState extends State<CitizenDashboard>
     switch (route) {
       case "/my-complaints":
         final prefs = await SharedPreferences.getInstance();
-        final memberId = prefs.getString('memberId') ?? '';
+        final facebookId = prefs.getString('facebookId') ?? prefs.getString('memberId') ?? '';
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => MyComplaintPage(memberId: memberId)),
+          MaterialPageRoute(builder: (_) => MyComplaintPage(memberId: facebookId)),
         );
         break;
       case "/pending-work":

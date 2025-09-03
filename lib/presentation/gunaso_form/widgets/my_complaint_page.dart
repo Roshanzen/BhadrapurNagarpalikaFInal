@@ -42,24 +42,32 @@ class _MyComplaintPageState extends State<MyComplaintPage> {
 
     try {
       final response = await http.get(Uri.parse(
-          "https://uat.nirc.com.np:8443/GWP/message/getGunashoByMemberId?memberId=${widget.memberId}"));
+          "http://localhost:8443/GWP/message/showOwnGunashoListOfGeneralUser?mIdOrFacebookId=${widget.memberId}&offset=0"));
 
       if (response.statusCode == 200) {
-        final List data = json.decode(response.body);
-        // Transform API data to match our expected format
-        final transformedData = data.map((item) => {
-          'heading': item['heading'] ?? 'No Title',
-          'message': item['message'] ?? 'No Message',
-          'status': item['status'] ?? 'बाँकी',
-          'createdDate': item['createdDate'] ?? DateTime.now().toString(),
-          'id': item['id']?.toString() ?? 'N/A',
-          'priority': item['priority'] ?? 'मध्यम'
-        }).toList();
+        final responseData = json.decode(response.body);
+        
+        if (responseData['success'] == true && responseData['data'] != "Empty") {
+          final List data = responseData['data'];
+          final transformedData = data.map((item) => {
+            'heading': item['heading'] ?? 'No Title',
+            'message': item['message'] ?? 'No Message',
+            'status': item['status'] ?? 'बाँकी',
+            'createdDate': item['createdDate'] ?? DateTime.now().toString(),
+            'id': item['id']?.toString() ?? 'N/A',
+            'priority': item['priority'] ?? 'मध्यम'
+          }).toList();
 
-        setState(() {
-          _complaints = transformedData;
-          _isLoading = false;
-        });
+          setState(() {
+            _complaints = transformedData;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _complaints = [];
+            _isLoading = false;
+          });
+        }
       } else {
         setState(() {
           _error = "Failed to fetch complaints: ${response.statusCode}";
