@@ -3,9 +3,14 @@ import 'package:sizer/sizer.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/browser_client.dart' if (dart.library.io) 'package:http/io_client.dart' as http_client;
+import 'package:universal_html/html.dart' as html;
+import 'dart:io' show Platform;
 
 import '../../core/app_export.dart';
 import '../../core/language_manager.dart';
+import '../../services/officer_api_service.dart';
 import './widgets/recent_complaint_card.dart';
 import '../gunaso_form/gunaso_form.dart'; // For GunasoStorage
 
@@ -18,91 +23,67 @@ class IncomingComplaintsPage extends StatefulWidget {
 
 class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
   bool _isLoading = false;
-  bool _isSearching = false;
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
   final String _selectedLanguage = 'ne'; // Default to Nepali
 
-  // Dynamic incoming complaints data
+  // Dynamic incoming complaints data (only from API)
   List<Map<String, dynamic>> _incomingComplaints = [];
   List<Map<String, dynamic>> _allComplaints = [];
-
-  // Mock incoming complaints data (fallback)
-  final List<Map<String, dynamic>> _mockComplaints = [
-    {
-      "id": "C001",
-      "title": "सडक बत्ती बिग्रिएको",
-      "citizenName": "श्याम कुमार राई",
-      "submissionDate": "२०८१/०५/०७",
-      "priority": "उच्च",
-      "status": "बाँकी",
-      "ward": 5,
-      "category": "पूर्वाधार",
-      "description": "मुख्य सडकको बत्ती बिग्रिएको छ।",
-      "phone": "+977-9841234567"
-    },
-    {
-      "id": "C004",
-      "title": "फोहोर संकलन समस्या",
-      "citizenName": "सुनिता गुरुङ",
-      "submissionDate": "२०८१/०५/०४",
-      "priority": "उच्च",
-      "status": "बाँकी",
-      "ward": 12,
-      "category": "सफाई",
-      "description": "फोहोर संकलन समयमा हुँदैन।",
-      "phone": "+977-9841234570"
-    },
-    {
-      "id": "C006",
-      "title": "पानीको पाइप लिक",
-      "citizenName": "बिना थापा",
-      "submissionDate": "२०८१/०५/०३",
-      "priority": "मध्यम",
-      "status": "बाँकी",
-      "ward": 7,
-      "category": "पूर्वाधार",
-      "description": "मुख्य पाइपबाट पानी चुहिरहेको छ।",
-      "phone": "+977-9841234572"
-    }
-  ];
 
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('officer_logged_in') ?? false;
+
+    if (!isLoggedIn) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/officer-login-screen');
+      }
+      return;
+    }
+
     _loadComplaints();
   }
+
 
   Future<void> _loadComplaints() async {
     setState(() {
       _isLoading = true;
     });
 
+    // Check if officer is logged in
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('officer_logged_in') ?? false;
+
+    if (!isLoggedIn) {
+      print('Officer not logged in - redirecting to login');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/officer-login-screen');
+      }
+      return;
+    }
+
     List<Map<String, dynamic>> apiComplaints = [];
     List<Map<String, dynamic>> localComplaints = [];
 
     try {
-      // Try to fetch from API first
-      final response = await http.get(Uri.parse(
-          "https://uat.nirc.com.np:8443/GWP/message/getAllGunasho"));
-
-      if (response.statusCode == 200) {
-        final List data = json.decode(response.body);
-        apiComplaints = data.map((item) => {
-          "id": item['id']?.toString() ?? 'N/A',
-          "title": item['heading'] ?? 'No Title',
-          "citizenName": item['fullName'] ?? 'Unknown',
-          "submissionDate": _formatDate(item['createdDate']),
-          "priority": item['priority'] ?? 'Medium',
-          "status": item['status'] ?? 'Pending',
-          "ward": item['ward'] ?? 1,
-          "category": item['category'] ?? 'General',
-          "description": item['message'] ?? 'No description',
-          "phone": item['phoneNumber'] ?? 'N/A'
-        }).toList();
-      }
+      // Use OfficerApiService which handles cookies and session persistence
+      apiComplaints = await OfficerApiService.getGunasoList(
+        offset: 0,
+        limit: 50,
+      );
     } catch (e) {
       print('Error loading API complaints: $e');
+      // If authentication error, redirect to login
+      if (e.toString().contains('Authentication required')) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/officer-login-screen');
+        }
+      }
     }
 
     try {
@@ -125,8 +106,8 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
       print('Error loading local complaints: $e');
     }
 
-    // Combine API and local complaints
-    final allComplaints = [...apiComplaints, ...localComplaints, ..._mockComplaints];
+    // Combine API and local complaints (no mock data)
+    final allComplaints = [...apiComplaints, ...localComplaints];
 
     setState(() {
       _incomingComplaints = allComplaints;
@@ -146,55 +127,26 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
   }
 
   List<Map<String, dynamic>> get _filteredComplaints {
-    if (_searchQuery.isEmpty) {
-      return _incomingComplaints;
-    }
-    return _incomingComplaints.where((complaint) {
-      return complaint['title']
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()) ||
-          complaint['citizenName']
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()) ||
-          complaint['category']
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase());
-    }).toList();
+    return _incomingComplaints;
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
     super.dispose();
   }
 
-  void _toggleSearch() {
-    setState(() {
-      _isSearching = !_isSearching;
-      if (!_isSearching) {
-        _searchQuery = '';
-        _searchController.clear();
-      }
-    });
-  }
+  Future<void> _logout() async {
+    // Use OfficerApiService to properly clear cookies and session
+    await OfficerApiService.logout();
 
-  void _onSearchChanged(String value) {
-    setState(() {
-      _searchQuery = value;
-    });
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/officer-login-screen');
+    }
   }
 
   Future<void> _refreshComplaints() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-
-    setState(() {
-      _isLoading = false;
-    });
+    // Actually refresh from API instead of just simulating
+    await _loadComplaints();
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -401,24 +353,7 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
     return Scaffold(
       backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: LanguageManager.getString('search_complaints', _selectedLanguage),
-                  border: InputBorder.none,
-                  hintStyle: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.onPrimary
-                        .withValues(alpha: 0.7),
-                  ),
-                ),
-                style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.lightTheme.colorScheme.onPrimary,
-                ),
-              )
-            : Text(LanguageManager.getString('incoming_complaints', _selectedLanguage)),
+        title: Text(LanguageManager.getString('incoming_complaints', _selectedLanguage)),
         backgroundColor: AppTheme.lightTheme.colorScheme.primary,
         foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
         elevation: 0,
@@ -428,17 +363,7 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
             Navigator.of(context).pushReplacementNamed('/officer-dashboard');
           },
         ),
-        actions: [
-          IconButton(
-            icon: CustomIconWidget(
-              iconName: _isSearching ? 'close' : 'search',
-              color: AppTheme.lightTheme.colorScheme.onPrimary,
-              size: 24,
-            ),
-            onPressed: _toggleSearch,
-          ),
-          SizedBox(width: 2.w),
-        ],
+        actions: [],
       ),
       body: _isLoading
           ? Center(
@@ -470,9 +395,7 @@ class _IncomingComplaintsPageState extends State<IncomingComplaintsPage> {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        _searchQuery.isNotEmpty
-                            ? LanguageManager.getString('no_search_results', _selectedLanguage)
-                            : LanguageManager.getString('no_incoming_complaints', _selectedLanguage),
+                        LanguageManager.getString('no_incoming_complaints', _selectedLanguage),
                         style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                           color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
                         ),

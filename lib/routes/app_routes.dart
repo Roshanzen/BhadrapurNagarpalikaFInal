@@ -24,6 +24,7 @@ class AppRoutes {
   static const String splash = '/splash-screen';
   static const String officerDashboard = '/officer-dashboard';
   static const String officerLogin = '/officer-login-screen';
+  static const String officerLoginAlt = '/officer-login'; // Alternative route name
   static const String citizenDashboard = '/citizen-dashboard';
   static const String citizenRegistration = '/citizen-registration-screen';
   static const String roleSelection = '/role-selection-screen';
@@ -46,6 +47,7 @@ class AppRoutes {
     splash: (context) => const SplashScreen(),
     officerDashboard: (context) => const OfficerDashboard(),
     officerLogin: (context) => const OfficerLoginScreen(),
+    officerLoginAlt: (context) => const OfficerLoginScreen(), // Alternative route
     citizenDashboard: (context) => const CitizenDashboard(),
     citizenRegistration: (context) => const CitizenRegistrationScreen(),
     roleSelection: (context) => const RoleSelectionScreen(),

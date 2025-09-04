@@ -177,8 +177,7 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
 
   // ---------------- BACKEND API CALL ----------------
   Future<void> _callBackendApi(String socialId, String fullName, String? emailAddress) async {
-    // -- const String apiUrl = 'https://uat.nirc.com.np:8443/GWP/member/mobileLoginValidation';-----
-    const String apiUrl = 'http://localhost:8443/GWP/member/mobileLoginValidation';
+    const String apiUrl = 'https://uat.nirc.com.np:8443/GWP/member/mobileLoginValidation';
     const String organizationId = '100';
     try {
       final formData = FormData.fromMap({
@@ -224,7 +223,7 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
 
   // ---------------- GOOGLE BACKEND API CALL ----------------
   Future<void> _callBackendApiForGoogle(String localId, String fullName, String email, String idToken, String organizationId) async {
-    const String apiUrl = 'http://localhost:8443/GWP/member/mobileLoginValidation';
+    const String apiUrl = 'https://uat.nirc.com.np:8443/GWP/member/mobileLoginValidation';
 
     // Validate required parameters
     if (localId.isEmpty || fullName.isEmpty || email.isEmpty || organizationId.isEmpty) {

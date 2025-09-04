@@ -5,8 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:sizer/sizer.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:http/browser_client.dart' if (dart.library.io) 'package:http/io_client.dart' as http_client;
+import 'package:universal_html/html.dart' as html;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/app_export.dart';
+import '../../services/officer_api_service.dart';
 import './widgets/login_form_widget.dart';
 import './widgets/municipal_header_widget.dart';
 
@@ -49,40 +54,22 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
     }
 
     try {
-      final uri =
-      Uri(scheme: _scheme, host: _host, port: _port, path: _loginPath);
+      // Initialize the OfficerApiService first
+      await OfficerApiService.initialize();
 
-      final resp = await http
-          .post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': u, 'password': p}),
-      )
-          .timeout(const Duration(seconds: 15));
+      // Use the OfficerApiService for login - this handles cookies properly
+      final success = await OfficerApiService.login(u, p);
 
-      // Attempt to parse JSON
-      Map<String, dynamic>? data;
-      try {
-        data = jsonDecode(resp.body) as Map<String, dynamic>?;
-      } catch (_) {
-        data = null;
-      }
-
-      if (resp.statusCode == 200 &&
-          data != null &&
-          (data['status']?.toString().toLowerCase() == 'success')) {
+      if (success) {
         HapticFeedback.lightImpact();
         if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/officer-dashboard');
         return;
       }
 
-      // Surface server message if any
-      final serverMsg = (data?['message']?.toString().trim() ?? '');
+      // Login failed
       setState(() {
-        _error = serverMsg.isNotEmpty
-            ? t('लगइन अस्वीकार: $serverMsg', 'Login rejected: $serverMsg')
-            : t('गलत प्रयोगकर्ता नाम वा पासवर्ड।',
+        _error = t('गलत प्रयोगकर्ता नाम वा पासवर्ड।',
             'Incorrect username or password.');
       });
       _snack(_error!);

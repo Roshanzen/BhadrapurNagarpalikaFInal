@@ -67,9 +67,9 @@ class RecentComplaintCard extends StatelessWidget {
       onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        width: 70.w,
-        margin: EdgeInsets.only(right: 3.w),
-        padding: EdgeInsets.all(4.w),
+        width: 65.w,
+        margin: EdgeInsets.only(right: 2.w),
+        padding: EdgeInsets.all(3.w),
         decoration: BoxDecoration(
           color: AppTheme.lightTheme.colorScheme.surface,
           borderRadius: BorderRadius.circular(12),

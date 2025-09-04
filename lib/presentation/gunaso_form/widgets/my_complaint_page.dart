@@ -42,7 +42,7 @@ class _MyComplaintPageState extends State<MyComplaintPage> {
 
     try {
       final response = await http.get(Uri.parse(
-          "http://localhost:8443/GWP/message/showOwnGunashoListOfGeneralUser?mIdOrFacebookId=${widget.memberId}&offset=0"));
+          "https://uat.nirc.com.np:8443/GWP/message/showOwnGunashoListOfGeneralUser?mIdOrFacebookId=${widget.memberId}&offset=0"));
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
