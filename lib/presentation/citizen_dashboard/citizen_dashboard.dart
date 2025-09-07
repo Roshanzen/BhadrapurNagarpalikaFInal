@@ -130,6 +130,7 @@ class _CitizenDashboardState extends State<CitizenDashboard>
 
   Future<void> _initializeServices() async {
     await _notificationService.initialize();
+    await _languageService.initialize();
   }
 
   void _onNotificationChanged() {
@@ -233,24 +234,65 @@ class _CitizenDashboardState extends State<CitizenDashboard>
         ),
       );
     }
-    
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: AppTheme.lightTheme.colorScheme.surface,
-      drawer: ProfileDrawer(userProfile: _userProfile),
-      appBar: _buildAppBar(),
-      body: SafeArea(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildHomeTab(),
-            _buildComplaintsTab(),
-            _buildProfileTab(),
-          ],
+
+    return WillPopScope(
+      onWillPop: () async {
+        // Show exit confirmation dialog instead of direct logout
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppTheme.lightTheme.colorScheme.surface,
+            title: Text(
+              'निस्कनुहुन्छ?',
+              style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            content: Text(
+              'के तपाईं एपबाट निस्कन चाहनुहुन्छ?',
+              style: AppTheme.lightTheme.textTheme.bodyMedium,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('रद्द गर्नुहोस्'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.lightTheme.colorScheme.error,
+                ),
+                child: Text(
+                  'निस्कनुहोस्',
+                  style: TextStyle(
+                    color: AppTheme.lightTheme.colorScheme.onError,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+        return shouldExit ?? false;
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AppTheme.lightTheme.colorScheme.surface,
+        drawer: ProfileDrawer(userProfile: _userProfile),
+        drawerEnableOpenDragGesture: false, // Disable swipe-to-open drawer
+        appBar: _buildAppBar(),
+        body: SafeArea(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildHomeTab(),
+              _buildComplaintsTab(),
+              _buildProfileTab(),
+            ],
+          ),
         ),
+        bottomNavigationBar: _buildBottomNavigationBar(),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 

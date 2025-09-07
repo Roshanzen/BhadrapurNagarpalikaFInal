@@ -5,7 +5,6 @@ import '../../core/app_export.dart';
 import '../../services/language_service.dart';
 import './widgets/help_bottom_sheet_widget.dart';
 import './widgets/language_toggle_widget.dart';
-import './widgets/role_card_widget.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
@@ -17,34 +16,10 @@ class RoleSelectionScreen extends StatefulWidget {
 class _RoleSelectionScreenState extends State<RoleSelectionScreen>
     with TickerProviderStateMixin {
   late LanguageService _languageService;
-  int _selectedRole = -1;
   late AnimationController _fadeController;
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-
-  final List<Map<String, dynamic>> _roleData = [
-    {
-      "titleNepali": "कार्यालय",
-      "titleEnglish": "Karyalaya",
-      "subtitleNepali": "अधिकारी लगइन",
-      "subtitleEnglish": "Officer Login",
-      "descriptionNepali": "नगरपालिकाका अधिकारीहरूका लागि गुनासो व्यवस्थापन प्रणाली",
-      "descriptionEnglish": "Complaint management system for municipal officers",
-      "icon": "badge",
-      "route": "/officer-login-screen",
-    },
-    {
-      "titleNepali": "जनता",
-      "titleEnglish": "Janta",
-      "subtitleNepali": "नागरिक लगइन",
-      "subtitleEnglish": "Citizen Login",
-      "descriptionNepali": "स्थानीय नागरिकहरूका लागि गुनासो दर्ता र ट्र्याकिङ",
-      "descriptionEnglish": "Complaint registration and tracking for local citizens",
-      "icon": "people",
-      "route": "/citizen-registration-screen",
-    },
-  ];
 
   @override
   void initState() {
@@ -84,11 +59,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
   }
 
   void _onLanguageChanged() {
-    if (mounted) {
-      setState(() {
-        // Force rebuild when language changes
-      });
-    }
+    if (mounted) setState(() {});
   }
 
   void _toggleLanguage() {
@@ -102,20 +73,19 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => HelpBottomSheetWidget(isNepali: _languageService.isNepali),
+      builder: (context) =>
+          HelpBottomSheetWidget(isNepali: _languageService.isNepali),
     );
   }
 
-  void _selectRole(int index) {
-    setState(() {
-      _selectedRole = index;
-    });
+  void _goToOfficerLogin() {
     HapticFeedback.selectionClick();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        Navigator.pushNamed(context, _roleData[index]["route"]);
-      }
-    });
+    Navigator.pushNamed(context, "/officer-login-screen");
+  }
+
+  void _goToCitizenLogin() {
+    HapticFeedback.selectionClick();
+    Navigator.pushNamed(context, "/citizen-registration-screen");
   }
 
   void _showExitDialog() {
@@ -178,6 +148,36 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
         return false;
       },
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+          elevation: 0,
+          title: Row(
+            children: [
+              LanguageToggleWidget(
+                isNepali: _languageService.isNepali,
+                onToggle: _toggleLanguage,
+              ),
+              SizedBox(width: 2.w),
+              GestureDetector(
+                onTap: _showHelpBottomSheet,
+                child: const Icon(Icons.help_outline, color: Colors.white),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: _goToOfficerLogin,
+              child: Text(
+                _languageService.isNepali ? "कार्यालय लग इन" : "Officer Login",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(width: 2.w),
+          ],
+        ),
         body: SafeArea(
           child: Container(
             width: double.infinity,
@@ -197,126 +197,66 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Header with language toggle and help
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        LanguageToggleWidget(
-                          isNepali: _languageService.isNepali,
-                          onToggle: _toggleLanguage,
-                        ),
-                        GestureDetector(
-                          onTap: _showHelpBottomSheet,
-                          child: Padding(
-                            padding: EdgeInsets.all(2.w),
-                            child: Icon(
-                              Icons.help_outline,
-                              color: Colors.white,
-                              size: 6.w,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Logo and title section
-                  Expanded(
-                    flex: 2,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/logo.png',
-                            width: 25.w,
-                            height: 25.w,
-                            fit: BoxFit.contain,
-                          ),
-                          SizedBox(height: 3.h),
-                          Text(
-                            _languageService.isNepali ? "भद्रपुर नगरपालिका" : "Bhadrapur Nagarpalika",
-                            style: AppTheme.lightTheme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 1.h),
-                          Text(
-                            _languageService.isNepali ? "गुनासो व्यवस्थापन पोर्टल" : "Complaint Management Portal",
-                            style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Role selection cards
-                  Expanded(
-                    flex: 3,
+                  ScaleTransition(
+                    scale: _scaleAnimation,
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          _languageService.isNepali ? "आफ्नो भूमिका छान्नुहोस्" : "Select Your Role",
-                          style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                        Image.asset(
+                          'assets/images/logo.png',
+                          width: 25.w,
+                          height: 25.w,
+                          fit: BoxFit.contain,
                         ),
                         SizedBox(height: 3.h),
-                        Expanded(
-                          child: ListView.builder(
-                            padding: EdgeInsets.symmetric(horizontal: 2.w),
-                            itemCount: _roleData.length,
-                            itemBuilder: (context, index) {
-                              final role = _roleData[index];
-                              return RoleCardWidget(
-                                roleTitle: _languageService.isNepali ? role["titleNepali"] : role["titleEnglish"],
-                                roleSubtitle: _languageService.isNepali ? role["subtitleNepali"] : role["subtitleEnglish"],
-                                roleDescription: _languageService.isNepali ? role["descriptionNepali"] : role["descriptionEnglish"],
-                                iconName: role["icon"],
-                                isSelected: _selectedRole == index,
-                                onTap: () => _selectRole(index),
-                              );
-                            },
+                        Text(
+                          _languageService.isNepali
+                              ? "भद्रपुर नगरपालिका"
+                              : "Bhadrapur Nagarpalika",
+                          style: AppTheme.lightTheme.textTheme.headlineMedium
+                              ?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 1.h),
+                        Text(
+                          _languageService.isNepali
+                              ? "गुनासो व्यवस्थापन पोर्टल"
+                              : "Complaint Management Portal",
+                          style: AppTheme.lightTheme.textTheme.titleMedium
+                              ?.copyWith(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   ),
-
-                  // Need Help section
-                  Padding(
-                    padding: EdgeInsets.all(4.w),
-                    child: GestureDetector(
-                      onTap: _showHelpBottomSheet,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.support_agent,
-                            color: Colors.white,
-                            size: 5.w,
-                          ),
-                          SizedBox(width: 2.w),
-                          Text(
-                            _languageService.isNepali ? "सहायता चाहिन्छ?" : "Need Help?",
-                            style: AppTheme.lightTheme.textTheme.labelLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ],
+                  SizedBox(height: 6.h),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 12.w, vertical: 1.8.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 4,
+                    ),
+                    onPressed: _goToCitizenLogin,
+                    child: Text(
+                      _languageService.isNepali
+                          ? "नागरिक लग इन"
+                          : "Citizen Login",
+                      style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
                       ),
                     ),
                   ),

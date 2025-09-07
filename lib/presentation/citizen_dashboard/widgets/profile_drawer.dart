@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../../core/app_export.dart';
+import '../../../services/language_service.dart';
 
 class ProfileDrawer extends StatefulWidget {
   final Map<String, dynamic> userProfile;
@@ -16,9 +17,41 @@ class ProfileDrawer extends StatefulWidget {
 }
 
 class _ProfileDrawerState extends State<ProfileDrawer> {
+  late LanguageService _languageService;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeLanguageService();
+  }
+
+  Future<void> _initializeLanguageService() async {
+    _languageService = LanguageService();
+    await _languageService.initialize();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Drawer(
+        backgroundColor: AppTheme.lightTheme.colorScheme.surface,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.lightTheme.colorScheme.primary,
+          ),
+        ),
+      );
+    }
+
     return Drawer(
       backgroundColor: AppTheme.lightTheme.colorScheme.surface,
       child: SafeArea(
@@ -63,25 +96,25 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
       child: Column(
         children: [
           Row(
-            children: [
-              Text(
-                'प्रोफाइल',
-                style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
-                  color: AppTheme.lightTheme.colorScheme.onPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: CustomIconWidget(
-                  iconName: 'close',
-                  color: AppTheme.lightTheme.colorScheme.onPrimary,
-                  size: 6.w,
-                ),
-              ),
-            ],
-          ),
+           children: [
+             Text(
+               _languageService.currentLanguageCode == 'ne' ? 'प्रोफाइल' : 'Profile',
+               style: AppTheme.lightTheme.textTheme.titleLarge?.copyWith(
+                 color: AppTheme.lightTheme.colorScheme.onPrimary,
+                 fontWeight: FontWeight.w600,
+               ),
+             ),
+             const Spacer(),
+             IconButton(
+               onPressed: () => Navigator.pop(context),
+               icon: CustomIconWidget(
+                 iconName: 'close',
+                 color: AppTheme.lightTheme.colorScheme.onPrimary,
+                 size: 6.w,
+               ),
+             ),
+           ],
+         ),
           SizedBox(height: 2.h),
           CircleAvatar(
             radius: 8.w,
@@ -128,7 +161,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'व्यक्तिगत जानकारी',
+            _languageService.currentLanguageCode == 'ne' ? 'व्यक्तिगत जानकारी' : 'Personal Information',
             style: AppTheme.lightTheme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
               color: AppTheme.lightTheme.colorScheme.primary,
@@ -136,13 +169,21 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           ),
           SizedBox(height: 2.h),
           _buildInfoRow(
-              'फोन नम्बर', widget.userProfile['phone'] as String? ?? 'N/A', 'phone'),
-          _buildInfoRow('वार्ड नम्बर', 'वार्ड ${widget.userProfile['ward'] ?? 'N/A'}',
+              _languageService.currentLanguageCode == 'ne' ? 'फोन नम्बर' : 'Phone Number',
+              widget.userProfile['phone'] as String? ?? 'N/A',
+              'phone'),
+          _buildInfoRow(
+              _languageService.currentLanguageCode == 'ne' ? 'वार्ड नम्बर' : 'Ward Number',
+              _languageService.currentLanguageCode == 'ne'
+                  ? 'वार्ड ${widget.userProfile['ward'] ?? 'N/A'}'
+                  : 'Ward ${widget.userProfile['ward'] ?? 'N/A'}',
               'location_city'),
           _buildInfoRow(
-              'ठेगाना', widget.userProfile['address'] as String? ?? 'N/A', 'home'),
+              _languageService.currentLanguageCode == 'ne' ? 'ठेगाना' : 'Address',
+              widget.userProfile['address'] as String? ?? 'N/A',
+              'home'),
           _buildInfoRow(
-              'सदस्यता मिति',
+              _languageService.currentLanguageCode == 'ne' ? 'सदस्यता मिति' : 'Join Date',
               _formatDate(
                   widget.userProfile['joinDate'] as DateTime? ?? DateTime.now()),
               'calendar_today'),
@@ -188,13 +229,39 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   }
 
   Widget _buildMenuItems(BuildContext context) {
+    final isNepali = _languageService.currentLanguageCode == 'ne';
+
     final menuItems = [
-      {'title': 'सेटिङ्गहरू', 'icon': 'settings', 'route': '/settings'},
-      {'title': 'भाषा परिवर्तन', 'icon': 'language', 'route': '/language-selection'},
-      {'title': 'सहायता', 'icon': 'help', 'route': '/help'},
-      {'title': 'हाम्रो बारेमा', 'icon': 'info', 'route': '/about'},
-      {'title': 'ठेगाना परिवर्तन', 'icon': 'location_city', 'route': '/address-change'},
-      {'title': 'गोपनीयता नीति', 'icon': 'privacy_tip', 'route': '/privacy'},
+      {
+        'title': isNepali ? 'सेटिङ्गहरू' : 'Settings',
+        'icon': 'settings',
+        'route': '/settings'
+      },
+      {
+        'title': isNepali ? 'भाषा परिवर्तन' : 'Language Change',
+        'icon': 'language',
+        'route': '/language-selection'
+      },
+      {
+        'title': isNepali ? 'सहायता' : 'Help',
+        'icon': 'help',
+        'route': '/help'
+      },
+      {
+        'title': isNepali ? 'हाम्रो बारेमा' : 'About Us',
+        'icon': 'info',
+        'route': '/about'
+      },
+      {
+        'title': isNepali ? 'ठेगाना परिवर्तन' : 'Address Change',
+        'icon': 'location_city',
+        'route': '/address-change'
+      },
+      {
+        'title': isNepali ? 'गोपनीयता नीति' : 'Privacy Policy',
+        'icon': 'privacy_tip',
+        'route': '/privacy'
+      },
     ];
 
     return Column(
@@ -244,7 +311,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               size: 6.w,
             ),
             title: Text(
-              'लग आउट',
+              _languageService.currentLanguageCode == 'ne' ? 'लग आउट' : 'Logout',
               style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                 color: AppTheme.lightTheme.colorScheme.error,
                 fontWeight: FontWeight.w500,
@@ -254,7 +321,9 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
           ),
           SizedBox(height: 1.h),
           Text(
-            'भद्रपुर नगरपालिका गुनासो पोर्टल\nसंस्करण 1.0.0',
+            _languageService.currentLanguageCode == 'ne'
+                ? 'भद्रपुर नगरपालिका गुनासो पोर्टल\nसंस्करण 1.0.0'
+                : 'Bhadrapur Nagarapalika Complaint Portal\nVersion 1.0.0',
             style: AppTheme.lightTheme.textTheme.labelSmall?.copyWith(
               color: AppTheme.lightTheme.colorScheme.onSurfaceVariant,
             ),
@@ -266,24 +335,28 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final isNepali = _languageService.currentLanguageCode == 'ne';
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.lightTheme.colorScheme.surface,
         title: Text(
-          'लग आउट',
+          isNepali ? 'लग आउट' : 'Logout',
           style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         content: Text(
-          'के तपाईं निश्चित हुनुहुन्छ कि तपाईं लग आउट गर्न चाहनुहुन्छ?',
+          isNepali
+              ? 'के तपाईं निश्चित हुनुहुन्छ कि तपाईं लग आउट गर्न चाहनुहुन्छ?'
+              : 'Are you sure you want to logout?',
           style: AppTheme.lightTheme.textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('रद्द गर्नुहोस्'),
+            child: Text(isNepali ? 'रद्द गर्नुहोस्' : 'Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -299,7 +372,7 @@ class _ProfileDrawerState extends State<ProfileDrawer> {
               backgroundColor: AppTheme.lightTheme.colorScheme.error,
             ),
             child: Text(
-              'लग आउट',
+              isNepali ? 'लग आउट' : 'Logout',
               style: TextStyle(
                 color: AppTheme.lightTheme.colorScheme.onError,
               ),

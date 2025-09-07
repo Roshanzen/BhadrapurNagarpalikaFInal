@@ -57,32 +57,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   }
 
   Future<void> _startSplashSequence() async {
-    // Start logo animation
     _logoAnimationController.forward();
 
-    // Check network connectivity
     await _checkNetworkConnectivity();
-
-    // Load bilingual content
     await _loadBilingualContent();
-
-    // Prepare cached data
     await _prepareCachedData();
-
-    // Validate stored credentials
     await _validateStoredCredentials();
 
-    // Start text animation after logo
     await Future.delayed(const Duration(milliseconds: 800));
     _textAnimationController.forward();
 
-    // Complete splash after 5 seconds total
     await Future.delayed(const Duration(milliseconds: 3200));
 
-    // Haptic feedback on completion
     HapticFeedback.lightImpact();
-
-    // Navigate based on authentication status
     _navigateToNextScreen();
   }
 
@@ -91,7 +78,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       _loadingStatus = 'नेटवर्क जाँच गर्दै...';
     });
     try {
-      // Simulate network check
       await Future.delayed(const Duration(milliseconds: 500));
       setState(() {
         _hasNetworkConnection = true;
@@ -125,13 +111,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     });
 
     try {
-      // Wait for AuthService to be initialized
       final authService = AuthService();
       if (!authService.isInitialized) {
         await authService.initialize();
       }
 
-      // Check if user is already authenticated
       await Future.delayed(const Duration(milliseconds: 400));
 
       setState(() {
@@ -155,15 +139,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     debugPrint('Navigation check - Cached user data: ${authService.userData}');
     debugPrint('Navigation check - Is logged in: ${authService.isLoggedIn}');
 
-    // Check if user is authenticated and has valid cached data
     if (authService.isLoggedIn && authService.userData != null) {
-      // User is logged in, navigate to appropriate dashboard with cached data
-      final route = authService.getDashboardRoute();
-      debugPrint('✅ User authenticated, navigating to: $route');
-
-      // Convert cached data to format expected by CitizenDashboard
       final userData = {
-        'displayName': authService.userData!['displayName'] ?? authService.userData!['name'] ?? 'नागरिक',
+        'displayName': authService.userData!['displayName'] ??
+            authService.userData!['name'] ??
+            'नागरिक',
         'email': authService.userData!['email'] ?? '',
         'photoUrl': authService.userData!['photoURL'] ?? authService.userData!['photoUrl'],
         'localId': authService.userData!['userId'] ?? '',
@@ -171,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         'lastName': authService.userData!['lastName'] ?? '',
       };
 
-      // Navigate with user data
+      debugPrint('✅ User authenticated, navigating to CitizenDashboard');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -179,7 +159,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         ),
       );
     } else {
-      // User not authenticated, go to role selection
       debugPrint('❌ User not authenticated, navigating to role selection');
       Navigator.pushReplacementNamed(context, '/role-selection-screen');
     }
@@ -200,8 +179,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
             colors: [
               AppTheme.lightTheme.colorScheme.primary,
               AppTheme.lightTheme.colorScheme.primaryContainer,
@@ -225,20 +204,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       builder: (context, child) {
                         return Transform.scale(
                           scale: _logoScaleAnimation.value,
-                          child: Container(
-                            width: 50.w,
-                            height: 50.w,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.1),
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(3.w),
-                              child: Image.asset(
-                                'assets/images/logo.png',
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                          child: CircleAvatar(
+                            radius: 75,
+                            backgroundImage: const AssetImage('assets/images/logo.png'),
+                            backgroundColor: Colors.transparent,
                           ),
                         );
                       },
@@ -257,22 +226,21 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'स्वागत छ',
+                              'भद्रपुर नगरपालिकाको गुनासो पोर्टलमा\nयहाँहरूलाई स्वागत छ',
+                              textAlign: TextAlign.center,
                               style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
-                                color: AppTheme.lightTheme.colorScheme.onPrimary,
+                                color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16.sp,
+                                height: 1.5,
+                                shadows: const [
+                                  Shadow(
+                                    color: Colors.black26,
+                                    blurRadius: 9,
+                                    offset: Offset(0, 2),
+                                  )
+                                ],
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: 2.h),
-                            Text(
-                              'भद्रपुर नगरपालिका गुनासो पोर्टलमा',
-                              style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(
-                                color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.9),
-                                fontSize: 14.sp,
-                              ),
-                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
@@ -289,20 +257,20 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                       _isLoading
                           ? CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          AppTheme.lightTheme.colorScheme.onPrimary,
+                          Colors.white,
                         ),
                         strokeWidth: 3.0,
                       )
-                          : Icon(
+                          : const Icon(
                         Icons.check_circle,
-                        color: AppTheme.lightTheme.colorScheme.onPrimary,
-                        size: 8.w,
+                        color: Colors.white,
+                        size: 40,
                       ),
                       SizedBox(height: 2.h),
                       Text(
                         _loadingStatus,
                         style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.8),
+                          color: Colors.white.withOpacity(0.9),
                           fontSize: 12.sp,
                         ),
                         textAlign: TextAlign.center,
@@ -312,16 +280,16 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.wifi_off,
-                              color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
-                              size: 5.w,
+                              color: Colors.white54,
+                              size: 20,
                             ),
                             SizedBox(width: 2.w),
                             Text(
                               'अफलाइन मोडमा काम गर्दै',
                               style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                                color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.6),
+                                color: Colors.white60,
                                 fontSize: 10.sp,
                               ),
                             ),
@@ -335,7 +303,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 Text(
                   'संस्करण १.०.०',
                   style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
-                    color: AppTheme.lightTheme.colorScheme.onPrimary.withOpacity(0.5),
+                    color: Colors.white.withOpacity(0.6),
                     fontSize: 10.sp,
                   ),
                 ),

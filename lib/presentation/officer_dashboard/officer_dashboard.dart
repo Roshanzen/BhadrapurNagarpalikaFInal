@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import '../../core/language_manager.dart';
+import '../../services/language_service.dart';
 import './widgets/notification_badge.dart';
 import './incoming_complaints_page.dart';
 import './all_complaints_page.dart';
@@ -20,24 +20,41 @@ class OfficerDashboard extends StatefulWidget {
 
 class _OfficerDashboardState extends State<OfficerDashboard> {
   final int _notificationCount = 5;
-  final String _selectedLanguage = 'ne'; // Default to Nepali
+  late LanguageService _languageService;
+  String _selectedLanguage = 'ne'; // Default to Nepali
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeLanguageService();
+  }
+
+  Future<void> _initializeLanguageService() async {
+    _languageService = LanguageService();
+    await _languageService.initialize();
+    setState(() {
+      _selectedLanguage = _languageService.currentLanguageCode;
+      _isLoading = false;
+    });
+  }
 
   // Complaint categories with compact design
   List<Map<String, dynamic>> get complaintCategories => [
     {
-      "title": LanguageManager.getString('incoming_complaints', _selectedLanguage),
+      "title": _languageService.getString('incoming_complaints'),
       "icon": "inbox",
       "count": 12,
       "color": AppTheme.lightTheme.colorScheme.primary,
     },
     {
-      "title": LanguageManager.getString('all_complaints', _selectedLanguage),
+      "title": _languageService.getString('all_complaints'),
       "icon": "list_alt",
       "count": 45,
       "color": AppTheme.lightTheme.colorScheme.secondary,
     },
     {
-      "title": LanguageManager.getString('resolved_complaints', _selectedLanguage),
+      "title": _languageService.getString('resolved_complaints'),
       "icon": "check_circle",
       "count": 28,
       "color": AppTheme.lightTheme.colorScheme.tertiary,
@@ -188,32 +205,72 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(LanguageManager.getString('officer_dashboard', _selectedLanguage)),
-        backgroundColor: AppTheme.lightTheme.colorScheme.primary,
-        foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          NotificationBadge(
-            count: _notificationCount,
-            onTap: () {
-              // Navigate to notifications
-            },
-          ),
-          IconButton(
-            icon: CustomIconWidget(
-              iconName: 'person',
-              color: AppTheme.lightTheme.colorScheme.onPrimary,
-              size: 24,
+    return WillPopScope(
+      onWillPop: () async {
+        // Show exit confirmation dialog instead of direct logout
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppTheme.lightTheme.colorScheme.surface,
+            title: Text(
+              'निस्कनुहुन्छ?',
+              style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            onPressed: _navigateToProfile,
+            content: Text(
+              'के तपाईं एपबाट निस्कन चाहनुहुन्छ?',
+              style: AppTheme.lightTheme.textTheme.bodyMedium,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text('रद्द गर्नुहोस्'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.lightTheme.colorScheme.error,
+                ),
+                child: Text(
+                  'निस्कनुहोस्',
+                  style: TextStyle(
+                    color: AppTheme.lightTheme.colorScheme.onError,
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: 2.w),
-        ],
-      ),
+        );
+        return shouldExit ?? false;
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.lightTheme.scaffoldBackgroundColor,
+        drawerEnableOpenDragGesture: false, // Disable swipe-to-open drawer
+        appBar: AppBar(
+          title: Text(_languageService.getString('officer_dashboard')),
+          backgroundColor: AppTheme.lightTheme.colorScheme.primary,
+          foregroundColor: AppTheme.lightTheme.colorScheme.onPrimary,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          actions: [
+            NotificationBadge(
+              count: _notificationCount,
+              onTap: () {
+                // Navigate to notifications
+              },
+            ),
+            IconButton(
+              icon: CustomIconWidget(
+                iconName: 'person',
+                color: AppTheme.lightTheme.colorScheme.onPrimary,
+                size: 24,
+              ),
+              onPressed: _navigateToProfile,
+            ),
+            SizedBox(width: 2.w),
+          ],
+        ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(4.w),
         child: Column(
@@ -221,7 +278,7 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
           children: [
             // Complaint Categories - Compact Design
             Text(
-              LanguageManager.getString('complaints', _selectedLanguage),
+              _languageService.getString('complaints'),
               style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppTheme.lightTheme.colorScheme.onSurface,
@@ -317,7 +374,7 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
               children: [
                 Expanded(
                   child: Text(
-                    '📋 ${LanguageManager.getString('notice_board', _selectedLanguage)}',
+                    '📋 ${_languageService.getString('notice_board')}',
                     style: AppTheme.lightTheme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppTheme.lightTheme.colorScheme.onSurface,
@@ -338,7 +395,7 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
                     color: AppTheme.lightTheme.colorScheme.primary,
                     size: 24,
                   ),
-                  tooltip: LanguageManager.getString('add_notice', _selectedLanguage),
+                  tooltip: _languageService.getString('add_notice'),
                 ),
               ],
             ),
@@ -398,7 +455,7 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
                   size: 20,
                 ),
                 label: Text(
-                  LanguageManager.getString('view_all', _selectedLanguage),
+                  _languageService.getString('view_all'),
                   style: AppTheme.lightTheme.textTheme.bodyMedium?.copyWith(
                     color: AppTheme.lightTheme.colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -420,7 +477,8 @@ class _OfficerDashboardState extends State<OfficerDashboard> {
           color: AppTheme.lightTheme.colorScheme.onPrimary,
           size: 24,
         ),
-        label: Text(LanguageManager.getString('submit_complaint', _selectedLanguage)),
+        label: Text(_languageService.getString('submit_complaint')),
+      ),
       ),
     );
   }
