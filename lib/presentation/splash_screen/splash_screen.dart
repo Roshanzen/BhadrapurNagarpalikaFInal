@@ -195,57 +195,61 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo Section
+                // Logo + Titles Section
                 Expanded(
                   flex: 3,
                   child: Center(
                     child: AnimatedBuilder(
                       animation: _logoScaleAnimation,
                       builder: (context, child) {
-                        return Transform.scale(
-                          scale: _logoScaleAnimation.value,
-                          child: CircleAvatar(
-                            radius: 75,
-                            backgroundImage: const AssetImage('assets/images/logo.png'),
-                            backgroundColor: Colors.transparent,
-                          ),
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Transform.scale(
+                              scale: _logoScaleAnimation.value,
+                              child: CircleAvatar(
+                                radius: 75,
+                                backgroundImage: const AssetImage('assets/images/logo.png'),
+                                backgroundColor: Colors.transparent,
+                              ),
+                            ),
+                            SizedBox(height: 2.h),
+                            AnimatedBuilder(
+                              animation: _textFadeAnimation,
+                              builder: (context, child) {
+                                return Opacity(
+                                  opacity: _textFadeAnimation.value,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'भद्रपुर नगरपालिकाको गुनासो पोर्टल',
+                                        textAlign: TextAlign.center,
+                                        style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18.sp,
+                                        ),
+                                      ),
+                                      SizedBox(height: 1.h),
+                                      Text(
+                                        'यहाँहरूलाई स्वागत छ',
+                                        textAlign: TextAlign.center,
+                                        style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16.sp,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         );
                       },
                     ),
-                  ),
-                ),
-                // Welcome Message Section
-                Expanded(
-                  flex: 1,
-                  child: AnimatedBuilder(
-                    animation: _textFadeAnimation,
-                    builder: (context, child) {
-                      return Opacity(
-                        opacity: _textFadeAnimation.value,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'भद्रपुर नगरपालिकाको गुनासो पोर्टलमा\nयहाँहरूलाई स्वागत छ',
-                              textAlign: TextAlign.center,
-                              style: AppTheme.lightTheme.textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16.sp,
-                                height: 1.5,
-                                shadows: const [
-                                  Shadow(
-                                    color: Colors.black26,
-                                    blurRadius: 9,
-                                    offset: Offset(0, 2),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
                   ),
                 ),
                 // Loading Section

@@ -587,12 +587,7 @@ class _CitizenRegistrationScreenState extends State<CitizenRegistrationScreen>
             isLoading: _isGoogleLoading,
           ),
           SizedBox(height: 2.h),
-          SocialAuthButton(
-            provider: 'Facebook',
-            icon: const Icon(Icons.facebook, color: Colors.white),
-            onPressed: _handleFacebookAuth,
-            isLoading: _isFacebookLoading,
-          ),
+
           if (Theme.of(context).platform == TargetPlatform.iOS)
             Padding(
               padding: EdgeInsets.only(top: 2.h),

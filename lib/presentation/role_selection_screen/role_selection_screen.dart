@@ -149,6 +149,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
       },
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false, // 🚀 disables the back button
           backgroundColor: AppTheme.lightTheme.colorScheme.primary,
           elevation: 0,
           title: Row(
@@ -206,8 +207,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                       children: [
                         Image.asset(
                           'assets/images/logo.png',
-                          width: 25.w,
-                          height: 25.w,
+                          width: 40.w,
+                          height: 40.w,
                           fit: BoxFit.contain,
                         ),
                         SizedBox(height: 3.h),
