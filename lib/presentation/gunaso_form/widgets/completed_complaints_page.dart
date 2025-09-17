@@ -44,7 +44,7 @@ class _CompletedComplaintsPageState extends State<CompletedComplaintsPage> {
       }
 
       final response = await http.get(Uri.parse(
-          "https://uat.nirc.com.np:8443/GWP/message/getGunashoByMemberId?memberId=$memberId"));
+          "https://gwp.nirc.com.np:8443/GWP/message/getGunashoByMemberId?memberId=$memberId"));
 
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);

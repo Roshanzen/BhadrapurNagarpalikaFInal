@@ -109,7 +109,7 @@ class _WardSelectionModalState extends State<WardSelectionModal> {
   // --- API Fetching Logic ---
   Future<List<Ward>> _fetchWards(int palikaId) async {
     // Use the provided base URL
-    final baseUrl = "https://uat.nirc.com.np:8443/GWP";
+    final baseUrl = "https://gwp.nirc.com.np:8443/GWP";
     final url = Uri.parse('$baseUrl/user/getOrgListFromId?orgId=$palikaId');
 
     try {

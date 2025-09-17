@@ -179,7 +179,7 @@ class _GunasoFormState extends State<GunasoForm> {
       _responseMessage = null;
     });
 
-    const String apiUrl = 'https://uat.nirc.com.np:8443/GWP/message/addGunashoFromMobile';
+    const String apiUrl = 'https://gwp.nirc.com.np:8443/GWP/message/addGunashoFromMobile';
     
     try {
       final request = http.MultipartRequest('POST', Uri.parse(apiUrl));

@@ -28,7 +28,7 @@ class _OfficerLoginScreenState extends State<OfficerLoginScreen> {
 
   // ---- CONFIG ----
   static const _scheme = 'https';
-  static const _host = 'uat.nirc.com.np';
+  static const _host = 'gwp.nirc.com.np';
   static const _port = 8443;
 
   // WORKING credential endpoint you provided

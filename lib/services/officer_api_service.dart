@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class OfficerApiService {
   static const String _scheme = 'https';
-  static const String _host = 'uat.nirc.com.np';
+  static const String _host = 'gwp.nirc.com.np';
   static const String _port = '8443';
   static const String _loginPath = '/GWP/user/login';
   static const String _getGunasoListPath = '/GWP/message/getGunasoList';
@@ -176,7 +176,7 @@ class OfficerApiService {
     int limit,
   ) async {
     try {
-      final url = Uri.parse("https://uat.nirc.com.np:8443/GWP/message/getGunasoList").replace(
+      final url = Uri.parse("https://gwp.nirc.com.np:8443/GWP/message/getGunasoList").replace(
         queryParameters: {
           'offset': offset.toString(),
           'limit': limit.toString(),
